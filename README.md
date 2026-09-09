@@ -56,12 +56,32 @@ why translation isn't a side feature here — it's in the critical path.
    secrecy pressure, mismatched sender identity, etc.
 4. The destination address is checked against the local risk-address cache,
    synced peer-to-peer over Hyperswarm (Pears Stack) — no central blocklist
-   server.
+   server — and against the user's own send history for address-poisoning
+   lookalikes.
 5. If risk is detected, Custos surfaces a friction screen *before* the WDK wallet
    signs the transaction — the user must explicitly acknowledge the warning to
-   proceed, or cancel.
+   proceed, or cancel. A Critical assessment allows only "cancel".
 6. Every assessment (not the raw chat content) is logged locally for the user's
    own audit trail.
+
+```mermaid
+flowchart LR
+    A["Paste chat text<br/>+ destination address"] --> B{"Language ==<br/>user language?"}
+    B -- no --> C["TranslatePsy<br/>translates on-device"]
+    B -- yes --> D
+    C --> D["Scam-pattern detector<br/>+ risk-address lookup<br/>+ poisoning check"]
+    D --> E{"Risk level"}
+    E -- "None / Low" --> F["Send proceeds,<br/>no interruption"]
+    E -- "Elevated / High" --> G["Friction screen:<br/>acknowledge or cancel"]
+    E -- "Critical" --> H["Hard block:<br/>only cancel allowed"]
+    F --> I["WDK signs + broadcasts"]
+    G -- proceeds --> I
+    I --> J["Assessment + decision<br/>logged locally"]
+    H --> J
+```
+
+See [ARCHITECTURE.md](./ARCHITECTURE.md#send-flow) for the full sequence
+diagram (every port/adapter involved) and the risk-level state machine.
 
 ## Tech stack
 
@@ -85,11 +105,12 @@ See [ARCHITECTURE.md](./ARCHITECTURE.md) for the full breakdown. Summary:
 
 ```
 packages/
-  core/            domain entities + use cases, zero I/O, zero SDK imports
-  adapters-qvac/   @qvac/sdk: scam detection, TranslatePsy, VisionPsy
-  adapters-wdk/    WDK wallet integration (send flow, pre-sign hook)
-  adapters-p2p/    Hyperswarm risk-address list sync (stretch)
-  shared/          seed scam-pattern dataset, shared types
+  core/             domain entities + use cases, zero I/O, zero SDK imports
+  adapters-qvac/    @qvac/sdk: scam detection, TranslatePsy, VisionPsy
+  adapters-wdk/     WDK wallet integration (send flow, pre-sign hook)
+  adapters-p2p/     Hyperswarm risk-address list sync (stretch)
+  adapters-storage/ local audit-log trail (assessments + decisions only)
+  shared/           seed scam-pattern dataset, shared types
 apps/
   web/             demo UI: paste chat/address → analyze → warn/block → send
 docs/

@@ -15,6 +15,7 @@ flowchart TB
         UC2[TranslateAndAnalyzeMessage]
         UC3[AnalyzeScreenshot]
         UC4[SyncRiskList]
+        UC5[RecordUserDecision]
         Ports[Ports: ScamDetectionPort, TranslationPort,
 OcrPort, WalletPort, RiskListPort, AuditLogPort]
     end
@@ -26,18 +27,23 @@ OcrPort, WalletPort, RiskListPort, AuditLogPort]
         wallet send/sign]
         P2P[adapters-p2p
         Hyperswarm risk sync]
+        Storage[adapters-storage
+        local audit-log trail]
     end
 
     UI --> UC1
     UI --> UC2
     UI --> UC3
+    UI --> UC5
     UC1 --> Ports
     UC2 --> Ports
     UC3 --> Ports
     UC4 --> Ports
+    UC5 --> Ports
     Ports -.implemented by.-> QVAC
     Ports -.implemented by.-> WDK
     Ports -.implemented by.-> P2P
+    Ports -.implemented by.-> Storage
 ```
 
 ## Layers
@@ -75,6 +81,13 @@ Implements `RiskListPort` over Hyperswarm: joins a topic swarm, gossips
 confirmed-scam addresses, persists them to a local cache consumed by
 `AnalyzeSendIntent`.
 
+### `packages/adapters-storage`
+
+Implements `AuditLogPort`: persists each `RiskAssessment` + `SendDecision`
+pair to `localStorage` (bounded history), falling back to in-memory-only
+where storage isn't available. Never receives raw chat text or the full
+destination address — the port's signature doesn't allow it.
+
 ### `packages/shared`
 
 Seed scam-pattern dataset (`scam-patterns.json`) and cross-package types with
@@ -86,6 +99,82 @@ Thin presentation layer: paste chat/address → call `AnalyzeSendIntent` /
 `TranslateAndAnalyzeMessage` → render warning/block UI → call `WalletPort.send`
 on explicit confirmation. Contains no business logic — every decision (is this
 risky? what's the message?) lives in `core`.
+
+## Send flow
+
+The sequence below is the one path every other diagram in this doc exists to
+support: what actually happens, in order, between pasting an address and a
+transaction landing on-chain (or not).
+
+```mermaid
+sequenceDiagram
+    actor User
+    participant UI as apps/web
+    participant Analyze as AnalyzeSendIntent
+    participant Scam as ScamDetectionPort (adapters-qvac)
+    participant RiskList as RiskListPort (adapters-p2p)
+    participant Decision as RecordUserDecision
+    participant Audit as AuditLogPort (adapters-storage)
+    participant Wallet as WalletPort (adapters-wdk)
+
+    User->>UI: Paste destination address + (optional) scam-chat text
+    UI->>Analyze: execute(SendIntent)
+    par Independent signals
+        Analyze->>Scam: analyzeText(chat text)
+        Scam-->>Analyze: ScamMatch[]
+    and
+        Analyze->>RiskList: lookup(destination)
+        RiskList-->>Analyze: AddressReputation
+    end
+    Note over Analyze: detectAddressPoisoning() also runs here,<br/>comparing destination against recent recipients
+    Analyze-->>UI: RiskAssessment (level, matches, summary)
+
+    alt level >= Critical
+        UI-->>User: Hard block — only "cancel" is offered
+    else level >= Elevated
+        UI-->>User: Friction screen — explicit acknowledge-and-proceed or cancel
+    else level == None/Low
+        UI-->>User: Clear to send, no interruption
+    end
+
+    User->>UI: Decision (proceed / proceed-with-acknowledged-risk / cancelled)
+    UI->>Decision: execute(assessment, decision)
+    Decision->>Audit: record(assessment, decision)
+    Note over Decision,Audit: Raw chat text and full address never reach<br/>the audit log — only the assessment + decision do
+
+    opt decision is not "cancelled"
+        UI->>Wallet: prepare(intent)
+        Wallet-->>UI: PreparedTransfer
+        UI->>Wallet: commit(transfer)
+        Wallet-->>UI: txHash
+    end
+```
+
+## Risk-level state machine
+
+`RiskLevel` is ordered (`None < Low < Elevated < High < Critical`) precisely so
+the friction policy can be two threshold checks instead of a lookup table —
+see `requiresFriction` / `requiresHardBlock` in
+`packages/core/src/domain/value-objects/RiskLevel.ts`.
+
+```mermaid
+stateDiagram-v2
+    [*] --> None
+    None --> Low: weak text match
+    Low --> Elevated: stronger match
+    Elevated --> High: stronger match
+    High --> Critical: near-certain match, or flagged/poisoned address
+
+    None --> Clean
+    Low --> Clean
+    Elevated --> Friction
+    High --> Friction
+    Critical --> HardBlock
+
+    Clean: No interruption, send proceeds
+    Friction: Warning shown, user must acknowledge or cancel
+    HardBlock: Only "cancelled" is valid, RecordUserDecision throws on any override
+```
 
 ## Why this split matters for the judged criteria
 
