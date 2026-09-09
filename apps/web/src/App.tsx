@@ -1,7 +1,8 @@
 import { useState } from "react";
 import type { RiskAssessment } from "@custos/core";
-import { parseDestinationAddress, requiresFriction, requiresHardBlock } from "@custos/core";
+import { parseDestinationAddress } from "@custos/core";
 import { analyzeSendIntent } from "./compositionRoot.js";
+import { RiskAssessmentPanel } from "./RiskAssessmentPanel.js";
 
 export function App() {
   const [address, setAddress] = useState("");
@@ -82,29 +83,15 @@ export function App() {
         />
       </label>
 
-      <button onClick={handleCheck} disabled={busy || !address} style={{ marginTop: 16, padding: "8px 16px" }}>
+      <button
+        onClick={handleCheck}
+        disabled={busy || !address}
+        style={{ marginTop: 16, padding: "12px 16px", minHeight: 44, minWidth: 44 }}
+      >
         {busy ? "Analyzing on-device..." : "Check before sending"}
       </button>
 
-      {assessment && (
-        <div
-          style={{
-            marginTop: 20,
-            padding: 16,
-            border: "2px solid",
-            borderColor: requiresHardBlock(assessment.level) ? "#c0392b" : requiresFriction(assessment.level) ? "#e67e22" : "#27ae60",
-          }}
-        >
-          <strong>Risk level: {assessment.level}</strong>
-          {assessment.addressReputation && (
-            <p>
-              Detected network: {assessment.addressReputation.address.network === "tron" ? "Tron" : "Ethereum"}
-            </p>
-          )}
-          <p>{assessment.summary}</p>
-          {requiresHardBlock(assessment.level) && <p>This send would be blocked — WDK signing must not proceed.</p>}
-        </div>
-      )}
+      {assessment && <RiskAssessmentPanel assessment={assessment} />}
     </main>
   );
 }
