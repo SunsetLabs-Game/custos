@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { RiskAssessment } from "@custos/core";
-import { requiresFriction, requiresHardBlock } from "@custos/core";
+import { parseDestinationAddress, requiresFriction, requiresHardBlock } from "@custos/core";
 import { analyzeSendIntent } from "./compositionRoot.js";
 
 export function App() {
@@ -8,17 +8,31 @@ export function App() {
   const [amount, setAmount] = useState("");
   const [context, setContext] = useState("");
   const [assessment, setAssessment] = useState<RiskAssessment | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
   async function handleCheck() {
     setBusy(true);
+    setError(null);
+    setAssessment(null);
     try {
+      const parsed = parseDestinationAddress(address);
+      if (!parsed.ok) {
+        setError(
+          parsed.reason === "empty"
+            ? "Enter a destination address."
+            : "That is not a Tron (T...) or Ethereum (0x...) address.",
+        );
+        return;
+      }
       const result = await analyzeSendIntent.execute({
-        destination: { value: address, network: "tron" },
+        destination: parsed.address,
         amountUsdt: Number(amount) || 0,
         context: context ? { text: context } : undefined,
       });
       setAssessment(result);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Analysis failed.");
     } finally {
       setBusy(false);
     }
@@ -33,11 +47,21 @@ export function App() {
         Destination address
         <input
           value={address}
-          onChange={(e) => setAddress(e.target.value)}
+          onChange={(e) => {
+            setAddress(e.target.value);
+            setError(null);
+          }}
           style={{ width: "100%", padding: 8 }}
           placeholder="TXyz... / 0x..."
+          aria-invalid={error !== null}
+          aria-describedby={error ? "address-error" : undefined}
         />
       </label>
+      {error && (
+        <p id="address-error" role="alert" style={{ color: "#c0392b", marginTop: 8 }}>
+          {error}
+        </p>
+      )}
 
       <label style={{ display: "block", marginTop: 12 }}>
         Amount (USDT)
@@ -72,6 +96,11 @@ export function App() {
           }}
         >
           <strong>Risk level: {assessment.level}</strong>
+          {assessment.addressReputation && (
+            <p>
+              Detected network: {assessment.addressReputation.address.network === "tron" ? "Tron" : "Ethereum"}
+            </p>
+          )}
           <p>{assessment.summary}</p>
           {requiresHardBlock(assessment.level) && <p>This send would be blocked — WDK signing must not proceed.</p>}
         </div>
