@@ -1,0 +1,67 @@
+import { describe, expect, it } from "vitest";
+import { AnalyzeSendIntent } from "../AnalyzeSendIntent.js";
+import { RiskLevel } from "../../../domain/value-objects/RiskLevel.js";
+import type { ScamDetectionPort } from "../../../domain/ports/ScamDetectionPort.js";
+import type { RiskListPort } from "../../../domain/ports/RiskListPort.js";
+import type { SendIntent } from "../../../domain/entities/SendIntent.js";
+
+const address = { value: "TXYZ...demo", network: "tron" } as const;
+
+function makeIntent(overrides: Partial<SendIntent> = {}): SendIntent {
+  return { destination: address, amountUsdt: 100, ...overrides };
+}
+
+describe("AnalyzeSendIntent", () => {
+  it("returns None risk when nothing matches and address is clean", async () => {
+    const scamDetection: ScamDetectionPort = { analyzeText: async () => [] };
+    const riskList: RiskListPort = {
+      lookup: async () => ({ address, flagged: false, source: "none" }),
+      reportScam: async () => {},
+      sync: async () => {},
+    };
+    const useCase = new AnalyzeSendIntent({ scamDetection, riskList });
+
+    const result = await useCase.execute(makeIntent());
+
+    expect(result.level).toBe(RiskLevel.None);
+  });
+
+  it("forces Critical when the destination address is flagged, regardless of text confidence", async () => {
+    const scamDetection: ScamDetectionPort = { analyzeText: async () => [] };
+    const riskList: RiskListPort = {
+      lookup: async () => ({ address, flagged: true, source: "p2p-sync" }),
+      reportScam: async () => {},
+      sync: async () => {},
+    };
+    const useCase = new AnalyzeSendIntent({ scamDetection, riskList });
+
+    const result = await useCase.execute(makeIntent());
+
+    expect(result.level).toBe(RiskLevel.Critical);
+  });
+
+  it("derives risk level from the strongest text match confidence", async () => {
+    const pattern = {
+      id: "p1",
+      category: "pig-butchering" as const,
+      description: "test",
+      heuristics: [],
+    };
+    const scamDetection: ScamDetectionPort = {
+      analyzeText: async () => [{ pattern, confidence: 0.7 }],
+    };
+    const riskList: RiskListPort = {
+      lookup: async () => ({ address, flagged: false, source: "none" }),
+      reportScam: async () => {},
+      sync: async () => {},
+    };
+    const useCase = new AnalyzeSendIntent({ scamDetection, riskList });
+
+    const result = await useCase.execute(
+      makeIntent({ context: { text: "guaranteed 30% weekly returns, act now" } }),
+    );
+
+    expect(result.level).toBe(RiskLevel.High);
+    expect(result.matches).toHaveLength(1);
+  });
+});

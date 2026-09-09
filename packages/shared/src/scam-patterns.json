@@ -1,0 +1,81 @@
+[
+  {
+    "id": "pig-butchering-guaranteed-returns",
+    "category": "pig-butchering",
+    "description": "Counterparty promises guaranteed high returns on a 'trading platform' and asks for an initial USDT deposit to 'unlock' further profits.",
+    "heuristics": [
+      "guaranteed return",
+      "daily profit",
+      "trading teacher",
+      "investment mentor",
+      "unlock withdrawal",
+      "vip trading group"
+    ]
+  },
+  {
+    "id": "fake-support-wallet-verification",
+    "category": "fake-support",
+    "description": "Someone claiming to be exchange/wallet support asks the user to 'verify' funds by sending USDT to a 'safe' address.",
+    "heuristics": [
+      "verify your wallet",
+      "safe address",
+      "official support",
+      "security check transfer",
+      "send funds to verify"
+    ]
+  },
+  {
+    "id": "recovery-scam-fee-upfront",
+    "category": "recovery-scam",
+    "description": "'Recovery agent' claims they can retrieve previously lost/stolen crypto in exchange for an upfront USDT fee.",
+    "heuristics": [
+      "fund recovery",
+      "recovery fee",
+      "we can retrieve your funds",
+      "blockchain investigator",
+      "advance fee"
+    ]
+  },
+  {
+    "id": "romance-scam-emergency",
+    "category": "romance-scam",
+    "description": "Long-distance romantic contact suddenly needs an urgent USDT transfer for an emergency, customs fee, or travel cost.",
+    "heuristics": [
+      "customs fee",
+      "stuck at the airport",
+      "medical emergency send",
+      "can't talk right now just send",
+      "prove your love"
+    ]
+  },
+  {
+    "id": "fake-investment-platform-dashboard",
+    "category": "fake-investment-platform",
+    "description": "Screenshot or link to a dashboard showing fabricated profits, asking for a deposit to withdraw the (nonexistent) balance.",
+    "heuristics": [
+      "pay tax to withdraw",
+      "unlock your balance",
+      "deposit to activate withdrawal",
+      "platform commission fee"
+    ]
+  },
+  {
+    "id": "urgency-secrecy-pressure",
+    "category": "urgency-pressure",
+    "description": "Generic social-engineering pressure tactics that precede many of the categories above: urgency, secrecy, and discouraging the user from verifying independently.",
+    "heuristics": [
+      "act now",
+      "don't tell anyone",
+      "limited time only",
+      "this offer expires today",
+      "don't ask your bank",
+      "keep this between us"
+    ]
+  },
+  {
+    "id": "address-poisoning-lookalike",
+    "category": "address-poisoning",
+    "description": "A destination address that closely resembles (same first/last characters as) an address the user has sent to before, planted via a zero-value transfer to poison the recipient's history/autocomplete.",
+    "heuristics": []
+  }
+]
