@@ -5,7 +5,12 @@ export type ScamCategory =
   | "romance-scam"
   | "fake-investment-platform"
   | "urgency-pressure"
-  | "address-poisoning";
+  | "address-poisoning"
+  | "task-scam"
+  | "impersonation-authority"
+  | "airdrop-claim-fee"
+  | "otc-escrow-scam"
+  | "phishing-approval-drain";
 
 export interface ScamPattern {
   readonly id: string;

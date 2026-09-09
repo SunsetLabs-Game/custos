@@ -77,5 +77,73 @@
     "category": "address-poisoning",
     "description": "A destination address that closely resembles (same first/last characters as) an address the user has sent to before, planted via a zero-value transfer to poison the recipient's history/autocomplete.",
     "heuristics": []
+  },
+  {
+    "id": "task-scam-commission",
+    "category": "task-scam",
+    "description": "A 'job' offering commission for simple tasks (liking videos, submitting reviews, boosting app rankings) run through Telegram/WhatsApp, where early small payouts build trust before the platform demands a USDT deposit to 'unlock' bigger batches or withdraw earnings.",
+    "heuristics": [
+      "complete simple tasks",
+      "daily commission",
+      "part-time job telegram",
+      "submit order to unlock",
+      "combo tasks",
+      "membership deposit to withdraw",
+      "recruiter will guide you"
+    ]
+  },
+  {
+    "id": "impersonation-authority-frozen-funds",
+    "category": "impersonation-authority",
+    "description": "Someone posing as police, a prosecutor, or a tax/customs official claims the user's funds are linked to a crime or under investigation and must be moved to a 'safe' or 'supervised' USDT wallet to be cleared.",
+    "heuristics": [
+      "your account is under investigation",
+      "transfer to a safe wallet for verification",
+      "avoid arrest",
+      "case number",
+      "cooperate with the investigation",
+      "asset freeze order",
+      "compliance department requires transfer"
+    ]
+  },
+  {
+    "id": "airdrop-claim-gas-fee",
+    "category": "airdrop-claim-fee",
+    "description": "A message claims the user was selected for a free token airdrop or giveaway, but must first send a small amount of USDT to cover a 'gas', 'activation', or 'unlock' fee before the (nonexistent) reward is released.",
+    "heuristics": [
+      "you have been selected for an airdrop",
+      "send gas fee to claim",
+      "activation fee required",
+      "double your usdt",
+      "send to receive double",
+      "claim your reward now",
+      "limited slots for the giveaway"
+    ]
+  },
+  {
+    "id": "otc-escrow-fake-agent",
+    "category": "otc-escrow-scam",
+    "description": "A counterparty in a peer-to-peer/OTC USDT trade insists the buyer send funds first, or introduces a fake 'escrow' or 'middleman' account that disappears once payment lands.",
+    "heuristics": [
+      "send first i'll release after",
+      "use my escrow agent",
+      "trusted middleman for this trade",
+      "escrow bot will hold the funds",
+      "release code after payment",
+      "reputation guaranteed just send"
+    ]
+  },
+  {
+    "id": "phishing-wallet-approval-drain",
+    "category": "phishing-approval-drain",
+    "description": "A link asks the user to 'reconnect', 'revalidate', or 'sync' their wallet on a fake dApp/exchange page that actually requests an unlimited USDT spending approval, letting the attacker drain the wallet afterward.",
+    "heuristics": [
+      "reconnect your wallet to continue",
+      "sync wallet to claim",
+      "verify wallet ownership by signing",
+      "approve to continue",
+      "your wallet needs to be revalidated",
+      "click here to secure your wallet"
+    ]
   }
 ]
