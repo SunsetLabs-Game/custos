@@ -4,6 +4,7 @@ import type { SendIntent } from "../../domain/entities/SendIntent.js";
 import type { RiskAssessment } from "../../domain/entities/RiskAssessment.js";
 import type { ScamMatch } from "../../domain/entities/ScamPattern.js";
 import { RiskLevel } from "../../domain/value-objects/RiskLevel.js";
+import { detectAddressPoisoning } from "../../domain/services/detectAddressPoisoning.js";
 
 export interface AnalyzeSendIntentDeps {
   readonly scamDetection: ScamDetectionPort;
@@ -31,15 +32,18 @@ export class AnalyzeSendIntent {
       this.deps.riskList.lookup(intent.destination),
     ]);
 
-    const level = deriveRiskLevel(textMatches, addressReputation.flagged);
+    const poisoningMatch = detectAddressPoisoning(intent.destination, intent.recentRecipients ?? []);
+    const matches = poisoningMatch ? [...textMatches, poisoningMatch] : textMatches;
+
+    const level = deriveRiskLevel(matches, addressReputation.flagged);
 
     return {
       id: newId(),
       createdAt: now,
       level,
-      matches: textMatches,
+      matches,
       addressReputation,
-      summary: summarize(level, textMatches, addressReputation.flagged),
+      summary: summarize(level, matches, addressReputation.flagged),
     };
   }
 }

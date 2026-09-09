@@ -10,6 +10,13 @@ export interface SendIntent {
   readonly amountUsdt: number;
   /** Pasted scam-chat context, if the user provided any. Optional — address-only checks still run. */
   readonly context?: ChatMessage;
+  /**
+   * Addresses the user has successfully sent to before, sourced from the
+   * app's own send history — used only to check `destination` for
+   * address-poisoning lookalikes. Optional — omitting it just skips that
+   * check, same as omitting `context` skips text analysis.
+   */
+  readonly recentRecipients?: readonly Address[];
 }
 
 export type SendDecision =
