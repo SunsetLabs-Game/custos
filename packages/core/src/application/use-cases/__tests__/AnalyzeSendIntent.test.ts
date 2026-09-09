@@ -64,4 +64,24 @@ describe("AnalyzeSendIntent", () => {
     expect(result.level).toBe(RiskLevel.High);
     expect(result.matches).toHaveLength(1);
   });
+
+  it("flags a lookalike destination address as a poisoning attempt", async () => {
+    const scamDetection: ScamDetectionPort = { analyzeText: async () => [] };
+    const riskList: RiskListPort = {
+      lookup: async () => ({ address, flagged: false, source: "none" }),
+      reportScam: async () => {},
+      sync: async () => {},
+    };
+    const useCase = new AnalyzeSendIntent({ scamDetection, riskList });
+    const knownRecipient = { value: "TAbc12300000000000000000000WXYZ99", network: "tron" } as const;
+    const lookalikeDestination = { value: "TAbc123DIFFERENTMIDDLESECTIONWXYZ99", network: "tron" } as const;
+
+    const result = await useCase.execute(
+      makeIntent({ destination: lookalikeDestination, recentRecipients: [knownRecipient] }),
+    );
+
+    expect(result.level).toBe(RiskLevel.Critical);
+    expect(result.matches).toHaveLength(1);
+    expect(result.matches[0]?.pattern.category).toBe("address-poisoning");
+  });
 });
