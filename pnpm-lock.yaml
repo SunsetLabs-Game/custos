@@ -20,6 +20,9 @@ importers:
       '@custos/adapters-qvac':
         specifier: workspace:*
         version: link:../../packages/adapters-qvac
+      '@custos/adapters-storage':
+        specifier: workspace:*
+        version: link:../../packages/adapters-storage
       '@custos/core':
         specifier: workspace:*
         version: link:../../packages/core
@@ -68,6 +71,19 @@ importers:
       typescript:
         specifier: ^5.6.3
         version: 5.9.3
+
+  packages/adapters-storage:
+    dependencies:
+      '@custos/core':
+        specifier: workspace:*
+        version: link:../core
+    devDependencies:
+      typescript:
+        specifier: ^5.6.3
+        version: 5.9.3
+      vitest:
+        specifier: ^2.1.4
+        version: 2.1.9
 
   packages/adapters-wdk:
     dependencies:

@@ -1,6 +1,7 @@
-import { AnalyzeSendIntent } from "@custos/core";
+import { AnalyzeSendIntent, RecordUserDecision } from "@custos/core";
 import { QvacScamDetectionAdapter } from "@custos/adapters-qvac";
 import { LocalRiskListAdapter } from "@custos/adapters-p2p";
+import { LocalAuditLogAdapter } from "@custos/adapters-storage";
 
 /**
  * Single place where ports are bound to adapters. Swap LocalRiskListAdapter
@@ -10,5 +11,7 @@ import { LocalRiskListAdapter } from "@custos/adapters-p2p";
  */
 const scamDetection = new QvacScamDetectionAdapter();
 const riskList = new LocalRiskListAdapter();
+const auditLog = new LocalAuditLogAdapter();
 
 export const analyzeSendIntent = new AnalyzeSendIntent({ scamDetection, riskList });
+export const recordUserDecision = new RecordUserDecision({ auditLog });
