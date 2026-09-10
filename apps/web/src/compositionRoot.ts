@@ -1,4 +1,4 @@
-import { AnalyzeSendIntent, RecordUserDecision, TranslateAndAnalyzeMessage } from "@custos/core";
+import { AnalyzeSendIntent, RecordUserDecision, SyncRiskList, TranslateAndAnalyzeMessage } from "@custos/core";
 import { QvacScamDetectionAdapter, QvacTranslateAdapter } from "@custos/adapters-qvac";
 import { LocalRiskListAdapter } from "@custos/adapters-p2p";
 import { LocalAuditLogAdapter } from "@custos/adapters-storage";
@@ -20,3 +20,4 @@ export const translateAndAnalyzeMessage = new TranslateAndAnalyzeMessage({
   scamDetection,
 });
 export const recordUserDecision = new RecordUserDecision({ auditLog });
+export const syncRiskList = new SyncRiskList({ riskList });

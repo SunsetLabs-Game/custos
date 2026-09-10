@@ -1,7 +1,7 @@
 import { useState } from "react";
-import type { ChatMessage, RiskAssessment, TranslatedChatMessage } from "@custos/core";
+import type { Address, ChatMessage, RiskAssessment, TranslatedChatMessage } from "@custos/core";
 import { languageTag, parseDestinationAddress } from "@custos/core";
-import { analyzeSendIntent, translateAndAnalyzeMessage } from "./compositionRoot.js";
+import { analyzeSendIntent, syncRiskList, translateAndAnalyzeMessage } from "./compositionRoot.js";
 import { RiskAssessmentPanel } from "./RiskAssessmentPanel.js";
 
 function isTranslated(message: { text: string }): message is TranslatedChatMessage {
@@ -20,10 +20,13 @@ export function App() {
   const [address, setAddress] = useState("");
   const [amount, setAmount] = useState("");
   const [context, setContext] = useState("");
+  const [destination, setDestination] = useState<Address | null>(null);
   const [assessment, setAssessment] = useState<RiskAssessment | null>(null);
   const [translated, setTranslated] = useState<TranslatedChatMessage | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [reporting, setReporting] = useState(false);
+  const [reported, setReported] = useState(false);
 
   async function handleCheck() {
     const parsed = parseDestinationAddress(address);
@@ -41,6 +44,7 @@ export function App() {
     setError(null);
     setAssessment(null);
     setTranslated(null);
+    setReported(false);
     try {
       const pasted = context.trim();
       let contextPayload: ChatMessage | undefined;
@@ -59,11 +63,23 @@ export function App() {
         },
         { textMatches },
       );
+      setDestination(parsed.address);
       setAssessment(result);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Analysis failed.");
     } finally {
       setBusy(false);
+    }
+  }
+
+  async function handleReportScam() {
+    if (!destination) return;
+    setReporting(true);
+    try {
+      await syncRiskList.reportScam(destination);
+      setReported(true);
+    } finally {
+      setReporting(false);
     }
   }
 
@@ -119,7 +135,18 @@ export function App() {
         {busy ? "Analyzing on-device..." : "Check before sending"}
       </button>
 
-      {assessment && <RiskAssessmentPanel assessment={assessment} translated={translated} />}
+      {assessment && (
+        <>
+          <RiskAssessmentPanel assessment={assessment} translated={translated} />
+          <button
+            onClick={handleReportScam}
+            disabled={reporting || reported}
+            style={{ marginTop: 12, padding: "8px 16px" }}
+          >
+            {reported ? "Reported — added to local risk list" : reporting ? "Reporting..." : "Report as scam"}
+          </button>
+        </>
+      )}
     </main>
   );
 }
