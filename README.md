@@ -140,7 +140,7 @@ package's README for the exact SDK calls to wire in per the official docs.
 
 *(Required disclosure per hackathon rules — keep this list current.)*
 
-- `@qvac/sdk` — Tether QVAC SDK, on-device inference (scam detection, TranslatePsy, VisionPsy).
+- `@qvac/sdk` `0.19.0`: Tether QVAC SDK, on-device inference (scam detection, TranslatePsy, VisionPsy). Classification uses Llama 3.2 1B Instruct Q4_0 locally.
 - WDK — self-custodial wallet toolkit, local signing.
 - Hyperswarm (Pears Stack) — P2P discovery/sync for the risk-address list, stretch goal.
 - No cloud inference APIs, no analytics SDKs, no third-party trackers.

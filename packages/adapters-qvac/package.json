@@ -5,6 +5,16 @@
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./runtime": {
+      "types": "./dist/createQvacCompletionClient.d.ts",
+      "import": "./dist/createQvacCompletionClient.js"
+    }
+  },
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
@@ -12,7 +22,8 @@
   },
   "dependencies": {
     "@custos/core": "workspace:*",
-    "@custos/shared": "workspace:*"
+    "@custos/shared": "workspace:*",
+    "@qvac/sdk": "0.19.0"
   },
   "devDependencies": {
     "typescript": "^5.6.3",
