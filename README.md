@@ -132,16 +132,14 @@ pnpm build
 pnpm dev:web
 ```
 
-Adapter packages (`adapters-qvac`, `adapters-wdk`, `adapters-p2p`) currently
-contain typed ports and stubs marked `TODO(sdk-integration)` — see each
-package's README for the exact SDK calls to wire in per the official docs.
+`adapters-wdk` is wired to Tether WDK for Tron USDT (`prepare` quotes, `commit` signs and broadcasts). Adapter packages `adapters-qvac` and `adapters-p2p` still contain typed ports and stubs marked `TODO(sdk-integration)`. See each remaining package README for the SDK calls to wire in.
 
 ## Disclosed external services / third-party components
 
 *(Required disclosure per hackathon rules — keep this list current.)*
 
 - `@qvac/sdk` — Tether QVAC SDK, on-device inference (scam detection, TranslatePsy, VisionPsy).
-- WDK — self-custodial wallet toolkit, local signing.
+- `@tetherto/wdk-wallet-tron` `1.0.0-beta.13`: Tether WDK Tron wallet module. Self-custodial USDT TRC-20 transfers. Local signing. Tron RPC is used only to quote and broadcast, never for inference.
 - Hyperswarm (Pears Stack) — P2P discovery/sync for the risk-address list, stretch goal.
 - No cloud inference APIs, no analytics SDKs, no third-party trackers.
 - Any additional library added during the hackathon must be listed here before submission.
