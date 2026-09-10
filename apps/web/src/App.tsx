@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { RiskAssessment } from "@custos/core";
-import { requiresFriction, requiresHardBlock } from "@custos/core";
 import { analyzeSendIntent } from "./compositionRoot.js";
+import { RiskResult } from "./RiskResult.js";
 
 export function App() {
   const [address, setAddress] = useState("");
@@ -62,20 +62,7 @@ export function App() {
         {busy ? "Analyzing on-device..." : "Check before sending"}
       </button>
 
-      {assessment && (
-        <div
-          style={{
-            marginTop: 20,
-            padding: 16,
-            border: "2px solid",
-            borderColor: requiresHardBlock(assessment.level) ? "#c0392b" : requiresFriction(assessment.level) ? "#e67e22" : "#27ae60",
-          }}
-        >
-          <strong>Risk level: {assessment.level}</strong>
-          <p>{assessment.summary}</p>
-          {requiresHardBlock(assessment.level) && <p>This send would be blocked — WDK signing must not proceed.</p>}
-        </div>
-      )}
+      {assessment && <RiskResult assessment={assessment} />}
     </main>
   );
 }
