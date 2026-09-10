@@ -132,17 +132,19 @@ pnpm build
 pnpm dev:web
 ```
 
-`adapters-wdk` is wired to Tether WDK for Tron USDT (`prepare` quotes, `commit` signs and broadcasts). Adapter packages `adapters-qvac` and `adapters-p2p` still contain typed ports and stubs marked `TODO(sdk-integration)`. See each remaining package README for the SDK calls to wire in.
+`adapters-wdk` is wired to Tether WDK for Tron USDT (`prepare` quotes, `commit` signs and broadcasts). `adapters-qvac` has its heuristic + on-device scam-detection pass wired; TranslatePsy/VisionPsy are still stubs marked `TODO(sdk-integration)`. `adapters-p2p` still contains typed ports and stubs. See each remaining package README for the SDK calls to wire in.
 
 ## Disclosed external services / third-party components
 
 *(Required disclosure per hackathon rules — keep this list current.)*
 
-Planned on-device SDKs (tracked by open integration issues — not yet present
-in any `package.json`):
+Wired on-device SDKs (in `package.json` today):
 
-- `@qvac/sdk` — Tether QVAC SDK, on-device inference (scam detection, TranslatePsy, VisionPsy).
+- `@qvac/sdk` `0.19.0`: Tether QVAC SDK, on-device inference (scam detection wired; TranslatePsy, VisionPsy pending). Classification uses Llama 3.2 1B Instruct Q4_0 locally.
 - `@tetherto/wdk-wallet-tron` `1.0.0-beta.13`: Tether WDK Tron wallet module. Self-custodial USDT TRC-20 transfers. Local signing. Tron RPC is used only to quote and broadcast, never for inference.
+
+Planned (tracked by open integration issues — not yet present in any `package.json`):
+
 - Hyperswarm (Pears Stack) — P2P discovery/sync for the risk-address list, stretch goal.
 
 Build & UI tooling (already in `package.json`, dev-time/build-time only —
