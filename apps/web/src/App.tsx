@@ -1,26 +1,43 @@
 import { useState } from "react";
-import type { RiskAssessment } from "@custos/core";
+import type { Address, RiskAssessment } from "@custos/core";
 import { requiresFriction, requiresHardBlock } from "@custos/core";
-import { analyzeSendIntent } from "./compositionRoot.js";
+import { analyzeSendIntent, syncRiskList } from "./compositionRoot.js";
 
 export function App() {
   const [address, setAddress] = useState("");
   const [amount, setAmount] = useState("");
   const [context, setContext] = useState("");
+  const [destination, setDestination] = useState<Address | null>(null);
   const [assessment, setAssessment] = useState<RiskAssessment | null>(null);
   const [busy, setBusy] = useState(false);
+  const [reporting, setReporting] = useState(false);
+  const [reported, setReported] = useState(false);
 
   async function handleCheck() {
     setBusy(true);
+    setReported(false);
     try {
+      const checkedDestination: Address = { value: address, network: "tron" };
       const result = await analyzeSendIntent.execute({
-        destination: { value: address, network: "tron" },
+        destination: checkedDestination,
         amountUsdt: Number(amount) || 0,
         context: context ? { text: context } : undefined,
       });
+      setDestination(checkedDestination);
       setAssessment(result);
     } finally {
       setBusy(false);
+    }
+  }
+
+  async function handleReportScam() {
+    if (!destination) return;
+    setReporting(true);
+    try {
+      await syncRiskList.reportScam(destination);
+      setReported(true);
+    } finally {
+      setReporting(false);
     }
   }
 
@@ -74,6 +91,9 @@ export function App() {
           <strong>Risk level: {assessment.level}</strong>
           <p>{assessment.summary}</p>
           {requiresHardBlock(assessment.level) && <p>This send would be blocked — WDK signing must not proceed.</p>}
+          <button onClick={handleReportScam} disabled={reporting || reported} style={{ marginTop: 12, padding: "8px 16px" }}>
+            {reported ? "Reported — added to local risk list" : reporting ? "Reporting..." : "Report as scam"}
+          </button>
         </div>
       )}
     </main>
