@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { RiskAssessment } from "@custos/core";
-import { requiresFriction, requiresHardBlock } from "@custos/core";
+import { requiresFriction, requiresHardBlock, detectChainNetwork } from "@custos/core";
 import { analyzeSendIntent } from "./compositionRoot.js";
 
 export function App() {
@@ -9,12 +9,21 @@ export function App() {
   const [context, setContext] = useState("");
   const [assessment, setAssessment] = useState<RiskAssessment | null>(null);
   const [busy, setBusy] = useState(false);
+  const [unrecognizedNetwork, setUnrecognizedNetwork] = useState(false);
 
   async function handleCheck() {
+    const network = detectChainNetwork(address);
+    if (network === "other") {
+      setUnrecognizedNetwork(true);
+      setAssessment(null);
+      return;
+    }
+
+    setUnrecognizedNetwork(false);
     setBusy(true);
     try {
       const result = await analyzeSendIntent.execute({
-        destination: { value: address, network: "tron" },
+        destination: { value: address, network },
         amountUsdt: Number(amount) || 0,
         context: context ? { text: context } : undefined,
       });
@@ -61,6 +70,12 @@ export function App() {
       <button onClick={handleCheck} disabled={busy || !address} style={{ marginTop: 16, padding: "8px 16px" }}>
         {busy ? "Analyzing on-device..." : "Check before sending"}
       </button>
+
+      {unrecognizedNetwork && (
+        <p style={{ marginTop: 12, color: "#c0392b" }}>
+          Unrecognized address format — doesn't match Tron or Ethereum. Double-check it before sending.
+        </p>
+      )}
 
       {assessment && (
         <div

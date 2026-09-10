@@ -13,6 +13,7 @@ export * from "./domain/ports/WalletPort.js";
 export * from "./domain/ports/RiskListPort.js";
 export * from "./domain/ports/AuditLogPort.js";
 export * from "./domain/services/detectAddressPoisoning.js";
+export * from "./domain/services/detectChainNetwork.js";
 
 // Application
 export * from "./application/use-cases/AnalyzeSendIntent.js";
