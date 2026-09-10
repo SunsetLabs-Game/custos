@@ -1,9 +1,12 @@
 import { RiskLevel, type ScamCategory, type ScamMatch } from "@custos/core";
+import { color as tokens } from "./theme.js";
 
 export interface RiskLevelView {
   readonly label: string;
   readonly hint: string;
   readonly color: string;
+  readonly bg: string;
+  readonly border: string;
   readonly icon: string;
 }
 
@@ -17,31 +20,41 @@ const RISK_LEVEL_VIEW: Record<RiskLevel, RiskLevelView> = {
   [RiskLevel.None]: {
     label: "No known risk",
     hint: "Nothing in the address or chat matched a known scam pattern.",
-    color: "#1e8449",
+    color: tokens.safe,
+    bg: tokens.safeBg,
+    border: tokens.safeBorder,
     icon: "✓",
   },
   [RiskLevel.Low]: {
     label: "Low",
     hint: "Weak signals only. Still worth a second look before you send.",
-    color: "#2e86c1",
+    color: tokens.safe,
+    bg: tokens.safeBg,
+    border: tokens.safeBorder,
     icon: "i",
   },
   [RiskLevel.Elevated]: {
     label: "Elevated - review before sending",
     hint: "This send needs an explicit check. Do not rush.",
-    color: "#d68910",
+    color: tokens.elevated,
+    bg: tokens.elevatedBg,
+    border: tokens.elevatedBorder,
     icon: "!",
   },
   [RiskLevel.High]: {
     label: "High",
     hint: "Strong scam-pattern match. Only continue if you fully trust the destination.",
-    color: "#ca6f1e",
+    color: tokens.elevated,
+    bg: tokens.elevatedBg,
+    border: tokens.elevatedBorder,
     icon: "!",
   },
   [RiskLevel.Critical]: {
     label: "Critical - send blocked",
     hint: "Custos will not let this transfer be signed.",
-    color: "#c0392b",
+    color: tokens.critical,
+    bg: tokens.criticalBg,
+    border: tokens.criticalBorder,
     icon: "✕",
   },
 };
