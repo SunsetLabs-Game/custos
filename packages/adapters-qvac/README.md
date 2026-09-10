@@ -6,7 +6,7 @@ The only package allowed to import `@qvac/sdk`. Implements three ports from
 | Port | File | Status |
 |---|---|---|
 | `ScamDetectionPort` | `QvacScamDetectionAdapter.ts` | Heuristic pre-filter plus optional on-device QVAC completion pass. |
-| `TranslationPort` | `QvacTranslateAdapter.ts` | Stub. Required for submission; this is the Track 02 load-bearing piece. |
+| `TranslationPort` | `QvacTranslateAdapter.ts` | `detectLanguage` + `translate` via injected QVAC client (`createQvacTranslationClient`). Without a client, detect returns `en` so the Vite demo still analyzes. |
 | `OcrPort` | `QvacVisionAdapter.ts` | Stub. Stretch goal, pick up last. |
 
 Pinned SDK: `@qvac/sdk` `0.19.0`. Classification model: Llama 3.2 1B Instruct Q4_0 (`LLAMA_3_2_1B_INST_Q4_0`).

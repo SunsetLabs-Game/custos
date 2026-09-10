@@ -18,7 +18,7 @@ submission device after `createQvacCompletionClient()` has loaded
 | Model | Quantization | Purpose |
 |---|---|---|
 | Llama 3.2 1B Instruct (`LLAMA_3_2_1B_INST_Q4_0`) | Q4_0 | scam-pattern classification (second pass after heuristics) |
-| TranslatePsy (_variant pending issue #3_) | _pending_ | chat-context translation |
+| Llama 3.2 1B Instruct via QVAC `translate()` | Q4_0 | chat-context translation (TranslatePsy slot; AfriSLM is `AFRICAN_4B_TRANSLATION_Q4_K_M`) |
 | VisionPsy (_variant pending stretch_) | _pending_ | screenshot OCR |
 
 ## Sample classification prompt

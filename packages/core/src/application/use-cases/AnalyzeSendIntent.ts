@@ -14,6 +14,14 @@ export interface AnalyzeSendIntentDeps {
   readonly newId?: () => string;
 }
 
+export interface AnalyzeSendIntentOptions {
+  /**
+   * When TranslateAndAnalyzeMessage already ran detection on (translated)
+   * text, pass those matches so the model is not invoked a second time.
+   */
+  readonly textMatches?: readonly ScamMatch[];
+}
+
 /**
  * The central use case: given what the user is about to send, and to whom,
  * decide how much friction to introduce before WDK is allowed to sign.
@@ -23,12 +31,16 @@ export interface AnalyzeSendIntentDeps {
 export class AnalyzeSendIntent {
   constructor(private readonly deps: AnalyzeSendIntentDeps) {}
 
-  async execute(intent: SendIntent): Promise<RiskAssessment> {
+  async execute(intent: SendIntent, options: AnalyzeSendIntentOptions = {}): Promise<RiskAssessment> {
     const now = this.deps.now?.() ?? new Date();
     const newId = this.deps.newId ?? (() => crypto.randomUUID());
 
     const [textMatches, addressReputation] = await Promise.all([
-      intent.context ? this.deps.scamDetection.analyzeText(intent.context.text) : Promise.resolve<readonly ScamMatch[]>([]),
+      options.textMatches
+        ? Promise.resolve(options.textMatches)
+        : intent.context
+          ? this.deps.scamDetection.analyzeText(intent.context.text)
+          : Promise.resolve<readonly ScamMatch[]>([]),
       this.deps.riskList.lookup(intent.destination),
     ]);
 
