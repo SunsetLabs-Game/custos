@@ -14,7 +14,7 @@ Deadline: **2026-09-11, 08:00 Panama time.**
 | Built with QVAC SDK (`@qvac/sdk`) | ⬜ | `adapters-qvac` is the only package allowed to import it |
 | Inference never routed to a cloud API | ⬜ | Verify no adapter makes an inference network call before submission |
 | Cloud OK for non-inference (hosting UI, etc.) | ✅ by design | apps/web bundle can be statically hosted |
-| Repo accessible to judges for full evaluation period | ⬜ | Keep public or grant judge access |
+| Repo accessible to judges for full evaluation period | ✅ | Verified public 2026-09-10; keep it public through the evaluation period |
 | Demo video ≤ 5 minutes, link accessible without credentials | ⬜ | See `docs/demo-script.md` |
 | All third-party bases declared in README | ⬜ | Keep "Disclosed external services" section current |
 | Pears/Hyperswarm P2P bonus (not required) | ⬜ stretch | `adapters-p2p/HyperswarmRiskListAdapter` |
@@ -43,9 +43,9 @@ Documented here so the decision is explicit, not accidental.
 
 ## General submission hygiene
 
-| Item | Status |
-|---|---|
-| Public repo, MIT license | ✅ |
-| Progressive commits (not one giant upload) | ⬜ ongoing |
-| README setup steps a judge can follow cold | ⬜ |
-| No Tether/QVAC branding used decoratively without functional relevance | ✅ by design — USDT is the protected asset, not a logo |
+| Item | Status | Notes |
+|---|---|---|
+| Public repo, MIT license | ✅ | |
+| Progressive commits (not one giant upload) | ✅ ongoing | Verified 2026-09-10: commits/PRs from multiple contributors spread across 2026-09-09 through 2026-09-10, not a single end-of-window dump; keep committing incrementally through the deadline |
+| README setup steps a judge can follow cold | ⬜ | |
+| No Tether/QVAC branding used decoratively without functional relevance | ✅ by design | USDT is the protected asset, not a logo |
