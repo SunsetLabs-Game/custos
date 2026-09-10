@@ -1,7 +1,8 @@
 import { useState } from "react";
 import type { ChatMessage, RiskAssessment, TranslatedChatMessage } from "@custos/core";
-import { detectChainNetwork, languageTag, requiresFriction, requiresHardBlock } from "@custos/core";
+import { languageTag, parseDestinationAddress } from "@custos/core";
 import { analyzeSendIntent, translateAndAnalyzeMessage } from "./compositionRoot.js";
+import { RiskAssessmentPanel } from "./RiskAssessmentPanel.js";
 
 function isTranslated(message: { text: string }): message is TranslatedChatMessage {
   return "originalText" in message;
@@ -21,19 +22,24 @@ export function App() {
   const [context, setContext] = useState("");
   const [assessment, setAssessment] = useState<RiskAssessment | null>(null);
   const [translated, setTranslated] = useState<TranslatedChatMessage | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  const [unrecognizedNetwork, setUnrecognizedNetwork] = useState(false);
 
   async function handleCheck() {
-    const network = detectChainNetwork(address);
-    if (network === "other") {
-      setUnrecognizedNetwork(true);
+    const parsed = parseDestinationAddress(address);
+    if (!parsed.ok) {
+      setError(
+        parsed.reason === "empty"
+          ? "Enter a destination address."
+          : "That is not a Tron (T...) or Ethereum (0x...) address.",
+      );
       setAssessment(null);
       return;
     }
 
-    setUnrecognizedNetwork(false);
     setBusy(true);
+    setError(null);
+    setAssessment(null);
     setTranslated(null);
     try {
       const pasted = context.trim();
@@ -47,13 +53,15 @@ export function App() {
       }
       const result = await analyzeSendIntent.execute(
         {
-          destination: { value: address, network },
+          destination: parsed.address,
           amountUsdt: Number(amount) || 0,
           context: contextPayload,
         },
         { textMatches },
       );
       setAssessment(result);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Analysis failed.");
     } finally {
       setBusy(false);
     }
@@ -68,11 +76,21 @@ export function App() {
         Destination address
         <input
           value={address}
-          onChange={(e) => setAddress(e.target.value)}
+          onChange={(e) => {
+            setAddress(e.target.value);
+            setError(null);
+          }}
           style={{ width: "100%", padding: 8 }}
           placeholder="TXyz... / 0x..."
+          aria-invalid={error !== null}
+          aria-describedby={error ? "address-error" : undefined}
         />
       </label>
+      {error && (
+        <p id="address-error" role="alert" style={{ color: "#c0392b", marginTop: 8 }}>
+          {error}
+        </p>
+      )}
 
       <label style={{ display: "block", marginTop: 12 }}>
         Amount (USDT)
@@ -93,35 +111,15 @@ export function App() {
         />
       </label>
 
-      <button onClick={handleCheck} disabled={busy || !address} style={{ marginTop: 16, padding: "8px 16px" }}>
+      <button
+        onClick={handleCheck}
+        disabled={busy || !address}
+        style={{ marginTop: 16, padding: "12px 16px", minHeight: 44, minWidth: 44 }}
+      >
         {busy ? "Analyzing on-device..." : "Check before sending"}
       </button>
 
-      {unrecognizedNetwork && (
-        <p style={{ marginTop: 12, color: "#c0392b" }}>
-          Unrecognized address format — doesn't match Tron or Ethereum. Double-check it before sending.
-        </p>
-      )}
-
-      {assessment && (
-        <div
-          style={{
-            marginTop: 20,
-            padding: 16,
-            border: "2px solid",
-            borderColor: requiresHardBlock(assessment.level) ? "#c0392b" : requiresFriction(assessment.level) ? "#e67e22" : "#27ae60",
-          }}
-        >
-          <strong>Risk level: {assessment.level}</strong>
-          {translated && (
-            <p>
-              Translated on-device from {translated.originalLanguage} to {translated.targetLanguage}.
-            </p>
-          )}
-          <p>{assessment.summary}</p>
-          {requiresHardBlock(assessment.level) && <p>This send would be blocked — WDK signing must not proceed.</p>}
-        </div>
-      )}
+      {assessment && <RiskAssessmentPanel assessment={assessment} translated={translated} />}
     </main>
   );
 }
