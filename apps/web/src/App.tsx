@@ -1,7 +1,7 @@
 import { useState } from "react";
-import type { Address, ChatMessage, RiskAssessment, TranslatedChatMessage } from "@custos/core";
-import { languageTag, parseDestinationAddress } from "@custos/core";
-import { analyzeSendIntent, syncRiskList, translateAndAnalyzeMessage } from "./compositionRoot.js";
+import type { Address, ChatMessage, PreparedTransfer, RiskAssessment, SendDecision, TranslatedChatMessage } from "@custos/core";
+import { languageTag, parseDestinationAddress, requiresFriction, requiresHardBlock } from "@custos/core";
+import { analyzeSendIntent, recordUserDecision, syncRiskList, translateAndAnalyzeMessage, walletPort } from "./compositionRoot.js";
 import { RiskAssessmentPanel } from "./RiskAssessmentPanel.js";
 
 function isTranslated(message: { text: string }): message is TranslatedChatMessage {
@@ -28,6 +28,12 @@ export function App() {
   const [reporting, setReporting] = useState(false);
   const [reported, setReported] = useState(false);
 
+  const [preparedTransfer, setPreparedTransfer] = useState<PreparedTransfer | null>(null);
+  const [decision, setDecision] = useState<SendDecision["kind"] | null>(null);
+  const [txHash, setTxHash] = useState<string | null>(null);
+  const [walletError, setWalletError] = useState<string | null>(null);
+  const [deciding, setDeciding] = useState(false);
+
   async function handleCheck() {
     const parsed = parseDestinationAddress(address);
     if (!parsed.ok) {
@@ -45,6 +51,10 @@ export function App() {
     setAssessment(null);
     setTranslated(null);
     setReported(false);
+    setPreparedTransfer(null);
+    setDecision(null);
+    setTxHash(null);
+    setWalletError(null);
     try {
       const pasted = context.trim();
       let contextPayload: ChatMessage | undefined;
@@ -55,20 +65,44 @@ export function App() {
         textMatches = ta.matches;
         setTranslated(isTranslated(ta.message) ? ta.message : null);
       }
-      const result = await analyzeSendIntent.execute(
-        {
-          destination: parsed.address,
-          amountUsdt: Number(amount) || 0,
-          context: contextPayload,
-        },
-        { textMatches },
-      );
+      const intent = {
+        destination: parsed.address,
+        amountUsdt: Number(amount) || 0,
+        context: contextPayload,
+      };
+      const result = await analyzeSendIntent.execute(intent, { textMatches });
       setDestination(parsed.address);
       setAssessment(result);
+
+      if (walletPort) {
+        try {
+          setPreparedTransfer(await walletPort.prepare(intent));
+        } catch (err) {
+          setWalletError(err instanceof Error ? err.message : "Could not prepare this transfer.");
+        }
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Analysis failed.");
     } finally {
       setBusy(false);
+    }
+  }
+
+  async function handleDecision(kind: SendDecision["kind"]) {
+    if (!assessment) return;
+    setDeciding(true);
+    setWalletError(null);
+    try {
+      if (kind !== "cancelled" && walletPort && preparedTransfer) {
+        const { txHash: hash } = await walletPort.commit(preparedTransfer);
+        setTxHash(hash);
+      }
+      await recordUserDecision.execute(assessment, { kind });
+      setDecision(kind);
+    } catch (err) {
+      setWalletError(err instanceof Error ? err.message : "Could not complete the send.");
+    } finally {
+      setDeciding(false);
     }
   }
 
@@ -138,6 +172,62 @@ export function App() {
       {assessment && (
         <>
           <RiskAssessmentPanel assessment={assessment} translated={translated} />
+
+          {!decision && (
+            <div style={{ marginTop: 16 }}>
+              {requiresHardBlock(assessment.level) ? (
+                <>
+                  <p role="alert" style={{ color: "#c0392b" }}>
+                    This send is blocked — Critical-risk sends can only be cancelled, never confirmed.
+                  </p>
+                  <button onClick={() => handleDecision("cancelled")} disabled={deciding} style={{ padding: "8px 16px" }}>
+                    Cancel send
+                  </button>
+                </>
+              ) : (
+                <>
+                  {requiresFriction(assessment.level) && (
+                    <p role="alert" style={{ color: "#e67e22" }}>
+                      Elevated risk — review the details above before continuing.
+                    </p>
+                  )}
+                  <button
+                    onClick={() =>
+                      handleDecision(requiresFriction(assessment.level) ? "proceed-with-acknowledged-risk" : "proceed")
+                    }
+                    disabled={deciding || (walletPort !== null && !preparedTransfer)}
+                    style={{ marginRight: 8, padding: "8px 16px" }}
+                  >
+                    {deciding ? "Sending..." : requiresFriction(assessment.level) ? "Send anyway" : "Confirm send"}
+                  </button>
+                  <button onClick={() => handleDecision("cancelled")} disabled={deciding} style={{ padding: "8px 16px" }}>
+                    Cancel
+                  </button>
+                </>
+              )}
+              {!walletPort && (
+                <p style={{ marginTop: 8, fontStyle: "italic" }}>
+                  Wallet not connected in this demo build — the decision is still recorded, no funds move.
+                </p>
+              )}
+              {walletError && (
+                <p role="alert" style={{ color: "#c0392b", marginTop: 8 }}>
+                  {walletError}
+                </p>
+              )}
+            </div>
+          )}
+
+          {decision && (
+            <p style={{ marginTop: 16 }}>
+              {decision === "cancelled"
+                ? "Send cancelled — recorded in the local audit log."
+                : txHash
+                  ? `Sent — tx ${txHash}`
+                  : "Decision recorded in the local audit log."}
+            </p>
+          )}
+
           <button
             onClick={handleReportScam}
             disabled={reporting || reported}

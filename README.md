@@ -58,26 +58,68 @@ why translation isn't a side feature here — it's in the critical path.
    synced peer-to-peer over Hyperswarm (Pears Stack) — no central blocklist
    server — and against the user's own send history for address-poisoning
    lookalikes.
-5. If risk is detected, Custos surfaces a friction screen *before* the WDK wallet
-   signs the transaction — the user must explicitly acknowledge the warning to
-   proceed, or cancel. A Critical assessment allows only "cancel".
-6. Every assessment (not the raw chat content) is logged locally for the user's
-   own audit trail.
+5. WDK `prepare`s the transfer (quote only — this never signs) so a fee/quote
+   is available the moment the risk screen renders.
+6. If risk is detected, Custos surfaces a friction screen *before* WDK is ever
+   asked to `commit` — the user must explicitly acknowledge the warning to
+   proceed, or cancel. A Critical assessment allows only "cancel"; `commit` is
+   never reachable from that state, enforced both in the UI (no proceed
+   button rendered) and in `RecordUserDecision` (throws if the decision isn't
+   `cancelled`).
+7. Every assessment and decision (not the raw chat content) is logged locally
+   for the user's own audit trail.
 
 ```mermaid
-flowchart LR
-    A["Paste chat text<br/>+ destination address"] --> B{"Language ==<br/>user language?"}
-    B -- no --> C["TranslatePsy<br/>translates on-device"]
-    B -- yes --> D
-    C --> D["Scam-pattern detector<br/>+ risk-address lookup<br/>+ poisoning check"]
-    D --> E{"Risk level"}
-    E -- "None / Low" --> F["Send proceeds,<br/>no interruption"]
-    E -- "Elevated / High" --> G["Friction screen:<br/>acknowledge or cancel"]
-    E -- "Critical" --> H["Hard block:<br/>only cancel allowed"]
-    F --> I["WDK signs + broadcasts"]
-    G -- proceeds --> I
-    I --> J["Assessment + decision<br/>logged locally"]
-    H --> J
+flowchart TD
+    subgraph Input["1 · Input — nothing leaves the device"]
+        A["Destination address"]
+        B["Pasted chat text (optional)"]
+    end
+
+    subgraph Analysis["2 · On-device analysis — QVAC"]
+        C{"Chat language ==<br/>user language?"}
+        D["TranslatePsy<br/>translates on-device"]
+        E["Scam-pattern detector<br/>heuristics + local LLM"]
+        F["Risk-address lookup<br/>local cache + P2P sync"]
+        G["Address-poisoning check<br/>vs. recent recipients"]
+    end
+
+    subgraph Decision["3 · Risk decision + WDK prepare"]
+        H{"Risk level"}
+        Pr["WDK prepare<br/>quote only, never signs"]
+        I["None / Low<br/>proceeds without interruption"]
+        J["Elevated / High<br/>friction screen: ack or cancel"]
+        K["Critical<br/>hard block: cancel only"]
+    end
+
+    subgraph Settlement["4 · Settlement"]
+        M{"User confirms?"}
+        N["WDK commit<br/>signs + broadcasts"]
+        O["Cancelled — nothing signed"]
+        Q["Assessment + decision<br/>logged locally"]
+    end
+
+    A --> C
+    B --> C
+    C -- no --> D --> E
+    C -- yes --> E
+    E --> F --> G --> H
+    H --> Pr
+    H -- "None / Low" --> I
+    H -- "Elevated / High" --> J
+    H -- Critical --> K
+    I --> M
+    J --> M
+    K --> O
+    M -- confirm --> N --> Q
+    M -- cancel --> O --> Q
+
+    classDef ok fill:#eafaf1,stroke:#1e8449,color:#1e8449;
+    classDef warn fill:#fef5e7,stroke:#d68910,color:#9c640c;
+    classDef block fill:#fdedec,stroke:#c0392b,color:#c0392b;
+    class I ok
+    class J warn
+    class K,O block
 ```
 
 See [ARCHITECTURE.md](./ARCHITECTURE.md#send-flow) for the full sequence
@@ -132,7 +174,7 @@ pnpm build
 pnpm dev:web
 ```
 
-`adapters-wdk` is wired to Tether WDK for Tron USDT (`prepare` quotes, `commit` signs and broadcasts). `adapters-qvac` has its heuristic + on-device scam-detection pass wired; TranslatePsy/VisionPsy are still stubs marked `TODO(sdk-integration)`. `adapters-p2p` still contains typed ports and stubs. See each remaining package README for the SDK calls to wire in.
+`adapters-wdk` is wired to Tether WDK for Tron USDT (`prepare` quotes, `commit` signs and broadcasts) and is gated behind `apps/web`'s friction/block screen — see "How it works" below. `adapters-qvac` has scam detection, TranslatePsy, and VisionPsy all wired to `@qvac/sdk`; each still degrades gracefully (heuristics-only / untranslated / empty OCR) when constructed without a real model client. `adapters-p2p` gossips confirmed reports over Hyperswarm behind the same optional-client pattern. None of the QVAC or Hyperswarm clients are constructed in `apps/web`'s browser build — they need a Node/Bare/Expo host; see each package README.
 
 ## Disclosed external services / third-party components
 
@@ -140,12 +182,15 @@ pnpm dev:web
 
 Wired on-device SDKs (in `package.json` today):
 
-- `@qvac/sdk` `0.19.0`: Tether QVAC SDK, on-device inference (scam detection wired; TranslatePsy, VisionPsy pending). Classification uses Llama 3.2 1B Instruct Q4_0 locally.
+- `@qvac/sdk` `0.19.0`: Tether QVAC SDK, on-device inference (scam detection, TranslatePsy, and VisionPsy all wired). Classification/translation use Llama 3.2 1B Instruct Q4_0; VisionPsy uses the EasyOCR Latin registry model.
 - `@tetherto/wdk-wallet-tron` `1.0.0-beta.13`: Tether WDK Tron wallet module. Self-custodial USDT TRC-20 transfers. Local signing. Tron RPC is used only to quote and broadcast, never for inference.
+- `hyperswarm` `^4.17.1`: Pears Stack P2P discovery/gossip for the risk-address list — no central server, direct peer connections only. Stretch goal, now wired behind `HyperswarmRiskListAdapter`'s injectable client (see `adapters-p2p`).
 
-Planned (tracked by open integration issues — not yet present in any `package.json`):
-
-- Hyperswarm (Pears Stack) — P2P discovery/sync for the risk-address list, stretch goal.
+None of `@qvac/sdk`, WDK, or `hyperswarm` are constructed in `apps/web`'s
+browser bundle — see `apps/web/src/compositionRoot.ts` — since a real signing
+key must never ship in a browser build and Hyperswarm needs raw UDP/DHT
+access a browser doesn't have. They're wired and unit-tested at the adapter
+level, ready for a Node/Bare/Expo host.
 
 Build & UI tooling (already in `package.json`, dev-time/build-time only —
 none of these run inference, call a remote API, or collect analytics):

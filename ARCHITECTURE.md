@@ -96,9 +96,12 @@ no SDK dependencies.
 ### `apps/web`
 
 Thin presentation layer: paste chat/address → call `AnalyzeSendIntent` /
-`TranslateAndAnalyzeMessage` → render warning/block UI → call `WalletPort.send`
-on explicit confirmation. Contains no business logic — every decision (is this
-risky? what's the message?) lives in `core`.
+`TranslateAndAnalyzeMessage` → render warning/block UI → call
+`WalletPort.prepare` then, only on explicit confirmation,
+`WalletPort.commit`. Contains no business logic — every decision (is this
+risky? what's the message?) lives in `core`. `compositionRoot.ts` binds
+`walletPort` to `null` in this Vite build (no signing key ships in a browser
+bundle); a Node/Bare/Expo host wires a real `WdkWalletAdapter` there instead.
 
 ## Send flow
 

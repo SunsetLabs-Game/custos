@@ -57,10 +57,16 @@ importers:
       '@custos/core':
         specifier: workspace:*
         version: link:../core
+      hyperswarm:
+        specifier: ^4.17.1
+        version: 4.17.1(bare-abort-controller@1.1.2)(bare-buffer@3.7.1)(bare-url@2.5.4)
     devDependencies:
       typescript:
         specifier: ^5.6.3
         version: 5.9.3
+      vitest:
+        specifier: ^2.1.4
+        version: 2.1.9(@types/node@22.7.5)
 
   packages/adapters-qvac:
     dependencies:
