@@ -11,8 +11,8 @@
       "import": "./dist/index.js"
     },
     "./runtime": {
-      "types": "./dist/createQvacCompletionClient.d.ts",
-      "import": "./dist/createQvacCompletionClient.js"
+      "types": "./dist/qvacRuntime.d.ts",
+      "import": "./dist/qvacRuntime.js"
     }
   },
   "scripts": {

@@ -1,23 +1,49 @@
 import { useState } from "react";
-import type { RiskAssessment } from "@custos/core";
-import { requiresFriction, requiresHardBlock } from "@custos/core";
-import { analyzeSendIntent } from "./compositionRoot.js";
+import type { ChatMessage, RiskAssessment, TranslatedChatMessage } from "@custos/core";
+import { languageTag, requiresFriction, requiresHardBlock } from "@custos/core";
+import { analyzeSendIntent, translateAndAnalyzeMessage } from "./compositionRoot.js";
+
+function isTranslated(message: { text: string }): message is TranslatedChatMessage {
+  return "originalText" in message;
+}
+
+function userLanguage() {
+  const tag =
+    typeof navigator !== "undefined" && navigator.language
+      ? navigator.language.slice(0, 2)
+      : "en";
+  return languageTag(tag || "en");
+}
 
 export function App() {
   const [address, setAddress] = useState("");
   const [amount, setAmount] = useState("");
   const [context, setContext] = useState("");
   const [assessment, setAssessment] = useState<RiskAssessment | null>(null);
+  const [translated, setTranslated] = useState<TranslatedChatMessage | null>(null);
   const [busy, setBusy] = useState(false);
 
   async function handleCheck() {
     setBusy(true);
+    setTranslated(null);
     try {
-      const result = await analyzeSendIntent.execute({
-        destination: { value: address, network: "tron" },
-        amountUsdt: Number(amount) || 0,
-        context: context ? { text: context } : undefined,
-      });
+      const pasted = context.trim();
+      let contextPayload: ChatMessage | undefined;
+      let textMatches;
+      if (pasted) {
+        const ta = await translateAndAnalyzeMessage.execute(pasted, userLanguage());
+        contextPayload = { text: ta.message.text, detectedLanguage: ta.message.detectedLanguage };
+        textMatches = ta.matches;
+        setTranslated(isTranslated(ta.message) ? ta.message : null);
+      }
+      const result = await analyzeSendIntent.execute(
+        {
+          destination: { value: address, network: "tron" },
+          amountUsdt: Number(amount) || 0,
+          context: contextPayload,
+        },
+        { textMatches },
+      );
       setAssessment(result);
     } finally {
       setBusy(false);
@@ -72,6 +98,11 @@ export function App() {
           }}
         >
           <strong>Risk level: {assessment.level}</strong>
+          {translated && (
+            <p>
+              Translated on-device from {translated.originalLanguage} to {translated.targetLanguage}.
+            </p>
+          )}
           <p>{assessment.summary}</p>
           {requiresHardBlock(assessment.level) && <p>This send would be blocked — WDK signing must not proceed.</p>}
         </div>

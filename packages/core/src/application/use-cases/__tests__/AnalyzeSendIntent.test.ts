@@ -65,6 +65,33 @@ describe("AnalyzeSendIntent", () => {
     expect(result.matches).toHaveLength(1);
   });
 
+  it("uses precomputed text matches and does not call scamDetection again", async () => {
+    const pattern = {
+      id: "p1",
+      category: "pig-butchering" as const,
+      description: "test",
+      heuristics: [],
+    };
+    const scamDetection: ScamDetectionPort = {
+      analyzeText: async () => {
+        throw new Error("analyzeText should not run when textMatches are provided");
+      },
+    };
+    const riskList: RiskListPort = {
+      lookup: async () => ({ address, flagged: false, source: "none" }),
+      reportScam: async () => {},
+      sync: async () => {},
+    };
+    const useCase = new AnalyzeSendIntent({ scamDetection, riskList });
+
+    const result = await useCase.execute(makeIntent({ context: { text: "already translated" } }), {
+      textMatches: [{ pattern, confidence: 0.7 }],
+    });
+
+    expect(result.level).toBe(RiskLevel.High);
+    expect(result.matches).toHaveLength(1);
+  });
+
   it("flags a lookalike destination address as a poisoning attempt", async () => {
     const scamDetection: ScamDetectionPort = { analyzeText: async () => [] };
     const riskList: RiskListPort = {

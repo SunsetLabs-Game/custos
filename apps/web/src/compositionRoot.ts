@@ -1,5 +1,5 @@
-import { AnalyzeSendIntent, RecordUserDecision } from "@custos/core";
-import { QvacScamDetectionAdapter } from "@custos/adapters-qvac";
+import { AnalyzeSendIntent, RecordUserDecision, TranslateAndAnalyzeMessage } from "@custos/core";
+import { QvacScamDetectionAdapter, QvacTranslateAdapter } from "@custos/adapters-qvac";
 import { LocalRiskListAdapter } from "@custos/adapters-p2p";
 import { LocalAuditLogAdapter } from "@custos/adapters-storage";
 
@@ -10,8 +10,13 @@ import { LocalAuditLogAdapter } from "@custos/adapters-storage";
  * is picked up — nothing outside this file should construct an adapter.
  */
 const scamDetection = new QvacScamDetectionAdapter();
+const translation = new QvacTranslateAdapter();
 const riskList = new LocalRiskListAdapter();
 const auditLog = new LocalAuditLogAdapter();
 
 export const analyzeSendIntent = new AnalyzeSendIntent({ scamDetection, riskList });
+export const translateAndAnalyzeMessage = new TranslateAndAnalyzeMessage({
+  translation,
+  scamDetection,
+});
 export const recordUserDecision = new RecordUserDecision({ auditLog });
