@@ -140,11 +140,24 @@ package's README for the exact SDK calls to wire in per the official docs.
 
 *(Required disclosure per hackathon rules — keep this list current.)*
 
+Planned on-device SDKs (tracked by open integration issues — not yet present
+in any `package.json`):
+
 - `@qvac/sdk` — Tether QVAC SDK, on-device inference (scam detection, TranslatePsy, VisionPsy).
 - WDK — self-custodial wallet toolkit, local signing.
 - Hyperswarm (Pears Stack) — P2P discovery/sync for the risk-address list, stretch goal.
-- No cloud inference APIs, no analytics SDKs, no third-party trackers.
-- Any additional library added during the hackathon must be listed here before submission.
+
+Build & UI tooling (already in `package.json`, dev-time/build-time only —
+none of these run inference, call a remote API, or collect analytics):
+
+- React / ReactDOM — `apps/web` UI.
+- Vite (`@vitejs/plugin-react`) — dev server and build for `apps/web`.
+- TypeScript — compilation across all packages.
+- Vitest — test runner for `packages/*`.
+
+No cloud inference APIs, no analytics SDKs, no third-party trackers.
+Any additional library added during the hackathon must be listed here before
+submission.
 
 ## Compliance checklist (Tether Developers Cup / Decentralized AI Hackathon)
 
