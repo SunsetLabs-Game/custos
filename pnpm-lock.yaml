@@ -26,12 +26,21 @@ importers:
       '@custos/core':
         specifier: workspace:*
         version: link:../../packages/core
+      lucide-react:
+        specifier: ^1.44.0
+        version: 1.44.0(react@18.3.1)
       react:
         specifier: ^18.3.1
         version: 18.3.1
       react-dom:
         specifier: ^18.3.1
         version: 18.3.1(react@18.3.1)
+      tesseract.js:
+        specifier: ^7.0.0
+        version: 7.0.0
+      tronweb:
+        specifier: 6.5.0
+        version: 6.5.0
     devDependencies:
       '@types/react':
         specifier: ^18.3.12
@@ -1369,6 +1378,9 @@ packages:
   blind-relay@1.6.1:
     resolution: {integrity: sha512-38YmKCl/m9NcTkwueBbcGIt9Zx3IT/Q9Nsluu6C5Gur6PqfE0zWPhPwCzia1hri/g0ICYxrqkgLtEaoWD5WeSQ==}
 
+  bmp-js@0.1.0:
+    resolution: {integrity: sha512-vHdS19CnY3hwiNdkaqk93DvjVLfbEcI8mys4UjuWrlX1haDmroo8o4xCzh4wD6DGV6HxRCyauwhHRqMTfERtjw==}
+
   bogon@1.3.0:
     resolution: {integrity: sha512-04tu0G/v0f2HPuQlSfhO635WwHDBCaITJ490rhxH9ttUlgPqOirZVKV02YB6NvPf5VkmbqJCm3bnZwrPk/eDSg==}
 
@@ -1641,6 +1653,9 @@ packages:
   hyperswarm@4.17.1:
     resolution: {integrity: sha512-bFy89nulBSY1qQZMZMGWb6wwBHftthONZr5IpX4o7hcSmMQI5IHyfA7Id3KU03SDflWfPvEm1YJy0AL5BFFblA==}
 
+  idb-keyval@6.3.0:
+    resolution: {integrity: sha512-um+2dgAWmYsu615EXpWVwSmapJhON0G43t3Ka/EVaohzPQXSMqKEqeDK/oIW3Ow+BXaF2PvSc+oBTFp793A5Ow==}
+
   index-encoder@3.5.0:
     resolution: {integrity: sha512-idZ1cxtZz2dRV6rUiaP9Xo99UjXbSzjcMacoQmxUMu/A7fEQcNPngvwDJYeWelQUS5XFlY71/or70lKn6XnwbQ==}
 
@@ -1649,6 +1664,9 @@ packages:
 
   is-property@1.0.2:
     resolution: {integrity: sha512-Ks/IoX00TtClbGQr4TWXemAnktAQvYB7HzcCxDGqEZU6oCmb2INHuOoKxbtR+HFkmYWBKv/dOZtGRiAjDhj92g==}
+
+  is-url@1.2.4:
+    resolution: {integrity: sha512-ITvGim8FhRiYe4IQ5uHSkj7pVaPDrCTkNd3yq3cV7iZAcJdHTUMPMEHcqSOy9xZ9qFenQCvi+2wjH9a1nXqHww==}
 
   js-tokens@4.0.0:
     resolution: {integrity: sha512-RdJUflcE3cUzKiMqQgsCu06FPu9UdIJO0beYbPhHN4k6apgJtifcoCtT9bcxOpYBtpD2kCM6Sbzg4CausW/PKQ==}
@@ -1678,6 +1696,11 @@ packages:
 
   lru-cache@5.1.1:
     resolution: {integrity: sha512-KpNARQA3Iwv+jTA0utUVVbrh+Jlrr1Fv0e56GGzAFOXN7dk/FviaDW8LHmK52DlcH4WP2n6gI8vN1aesBFgo9w==}
+
+  lucide-react@1.44.0:
+    resolution: {integrity: sha512-2egNApH4hX4j/qdCgRublh88+9u3mEhz9iSlW5ckm4kaQEqZbXbMr0l5u5JZLy8nmWRx2dbHGQkEDYz6C9aCgw==}
+    peerDependencies:
+      react: ^16.5.1 || ^17.0.0 || ^18.0.0 || ^19.0.0
 
   magic-string@0.30.21:
     resolution: {integrity: sha512-vd2F4YUyEXKGcLHoq+TEyCjxueSeHnFxyyjNp80yg0XV4vUhnDer/lvvlqM/arB5bXQN5K2/3oinyCRyx8T2CQ==}
@@ -1714,6 +1737,15 @@ packages:
   nat-sampler@1.0.1:
     resolution: {integrity: sha512-yQvyNN7xbqR8crTKk3U8gRgpcV1Az+vfCEijiHu9oHHsnIl8n3x+yXNHl42M6L3czGynAVoOT9TqBfS87gDdcw==}
 
+  node-fetch@2.7.0:
+    resolution: {integrity: sha512-c4FRfUm/dbcWZ7U+1Wq0AwCyFL+3nt2bEw05wfxSz+DWpWsitgmSgYmy2dQdWyKC1694ELPqMs/YzUSNozLt8A==}
+    engines: {node: 4.x || >=6.0.0}
+    peerDependencies:
+      encoding: ^0.1.0
+    peerDependenciesMeta:
+      encoding:
+        optional: true
+
   node-releases@2.0.54:
     resolution: {integrity: sha512-YHs7BmmcsdAI5Ozuf8JZo6PT0mv2GIWC9vMfvUC3dp65M8hn7Ux8CPL+2oBI7juNuj9d0ndhTcznq2ODBps9cQ==}
     engines: {node: '>=18'}
@@ -1723,6 +1755,10 @@ packages:
 
   noise-handshake@4.2.0:
     resolution: {integrity: sha512-9O/VTNX/E2/AToyMTTDU0J/4WhaXMTdqc2DHs9vf+snoZ0cenSBq0dNYTVV1snYYEkmo6QeRrYMxtqtoYnY+LA==}
+
+  opencollective-postinstall@2.0.3:
+    resolution: {integrity: sha512-8AV/sCtuzUeTo8gQK5qDZzARrulB3egtLzFgteqB2tcT4Mw7B8Kt7JcDHmltjz6FOAHsvTevk70gZEbhM4ZS9Q==}
+    hasBin: true
 
   paparam@1.13.0:
     resolution: {integrity: sha512-WV8vCnEBPKcSSEIDSaAetppO+C0+OUJ6gjO1BGbhvIp2jc8zfV9C/8NARjEGgnUo5DDwdNsGOrFTZKLFTTeB0A==}
@@ -1807,6 +1843,9 @@ packages:
 
   refcounter@1.0.0:
     resolution: {integrity: sha512-1WosVzUy0kPUaPMEtlNDwm99UsteALIhXXR8rerELoa63WkYIXAl0hxgwPFrIYBRWZPGUyekQ04FRtPJ7dHk9w==}
+
+  regenerator-runtime@0.13.11:
+    resolution: {integrity: sha512-kY1AZVr2Ra+t+piVaJ4gxaFaReZVH40AKNo7UCX6W+dEwBo/2oZJzqfuN1qLq1oL45o56cPaTXELwrTh8Fpggg==}
 
   require-addon@1.2.0:
     resolution: {integrity: sha512-VNPDZlYgIYQwWp9jMTzljx+k0ZtatKlcvOhktZ/anNPI3dQ9NXk7cq2U4iJ1wd9IrytRnYhyEocFWbkdPb+MYA==}
@@ -1921,6 +1960,12 @@ packages:
   teex@1.0.1:
     resolution: {integrity: sha512-eYE6iEI62Ni1H8oIa7KlDU6uQBtqr4Eajni3wX7rpfXD8ysFx8z0+dri+KWEPWpBsxXfxu58x/0jvTVT1ekOSg==}
 
+  tesseract.js-core@7.0.0:
+    resolution: {integrity: sha512-WnNH518NzmbSq9zgTPeoF8c+xmilS8rFIl1YKbk/ptuuc7p6cLNELNuPAzcmsYw450ca6bLa8j3t0VAtq435Vw==}
+
+  tesseract.js@7.0.0:
+    resolution: {integrity: sha512-exPBkd+z+wM1BuMkx/Bjv43OeLBxhL5kKWsz/9JY+DXcXdiBjiAch0V49QR3oAJqCaL5qURE0vx9Eo+G5YE7mA==}
+
   test-tmp@1.4.0:
     resolution: {integrity: sha512-GVggxGg+jXqP2Wbju50JVLo+9E+nIOPPyWqgr63EbOnNItIKu1cEbJpTWAJeflnyGqXOtcMI7ijHRp88GUkfDA==}
 
@@ -1962,6 +2007,9 @@ packages:
   tmatch@5.0.0:
     resolution: {integrity: sha512-Ib9OtBkpHn07tXP04SlN1SYRxFgTk6wSM2EBmjjxug4u5RXPRVLkdFJSS1PmrQidaSB8Lru9nRtViQBsbxzE5Q==}
     engines: {node: '>=8'}
+
+  tr46@0.0.3:
+    resolution: {integrity: sha512-N3WMsuqV66lT30CrXNbEjx4GEwlow3v6rr4mCcv6prnfwhS01rkgyFdjPNBYd9br7LpXV1+Emh01fHnq2Gdgrw==}
 
   tronweb@6.5.0:
     resolution: {integrity: sha512-1OlkUqrFZpVSx0Gvwi9311iOVHbALobHg4SEEvOR3rhAUY+IjUIBCCwJB/u8QFpxx9GK6R6Njyqx45BMX3tjmQ==}
@@ -2068,6 +2116,15 @@ packages:
       jsdom:
         optional: true
 
+  wasm-feature-detect@1.9.0:
+    resolution: {integrity: sha512-zonE+xlIIYtxPy++L24ow0hAD8CICb4+FgPyROd3buyXIqsJvUEDkBgfCCoXOd1Hu3DUr0GOfnPIdcGV+YpNaA==}
+
+  webidl-conversions@3.0.1:
+    resolution: {integrity: sha512-2JAn3z8AR6rjK8Sm8orRC0h/bcl/DqL7tRPdGZ4I1CjdF+EaMLmYxBHyXuKL849eucPFhvBoxMsflfOb8kxaeQ==}
+
+  whatwg-url@5.0.0:
+    resolution: {integrity: sha512-saE57nupxk6v3HY35+jzBwYa0rKSy0XR8JSxZPwgLr7ys0IBzhGviA1/TUGJLmSVqs8pb9AnvICXEuOHLprYTw==}
+
   which-runtime@1.4.0:
     resolution: {integrity: sha512-0ugbP4CJW4e2D20jvEcC4973dCgIaHI4Rw1PT+26U9zEve7FyYdWAIwUnoeOYvoCfn+wXHoHTKb1KhkYlb60Pw==}
 
@@ -2096,6 +2153,9 @@ packages:
 
   z32@1.1.0:
     resolution: {integrity: sha512-1WUHy+VS6d0HPNspDxvLssBbeQjXMjSnpv0vH82vRAUfg847NmX3OXozp/hRP5jPhxBbrVzrgvAt+UsGNzRFQQ==}
+
+  zlibjs@0.3.1:
+    resolution: {integrity: sha512-+J9RrgTKOmlxFSDHo0pI1xM6BLVUv+o0ZT9ANtCxGkjIVCCUdx9alUF8Gm+dGLKbkkkidWIHFDZHDMpfITt4+w==}
 
   zod@4.6.1:
     resolution: {integrity: sha512-341aRWQsve0rvronKNTqZpjmzdbUDlFuzHaI/XLg/Ej82qffDJRRfBTCuv7+9q/rMjB6LSLyEBnW4InJeMtt/Q==}
@@ -3835,6 +3895,8 @@ snapshots:
       - react-native-b4a
       - sodium-javascript
 
+  bmp-js@0.1.0: {}
+
   bogon@1.3.0:
     dependencies:
       compact-encoding: 3.5.0
@@ -4432,6 +4494,8 @@ snapshots:
       - react-native-b4a
       - sodium-javascript
 
+  idb-keyval@6.3.0: {}
+
   index-encoder@3.5.0:
     dependencies:
       b4a: 1.8.1
@@ -4445,6 +4509,8 @@ snapshots:
       - react-native-b4a
 
   is-property@1.0.2: {}
+
+  is-url@1.2.4: {}
 
   js-tokens@4.0.0: {}
 
@@ -4469,6 +4535,10 @@ snapshots:
   lru-cache@5.1.1:
     dependencies:
       yallist: 3.1.1
+
+  lucide-react@1.44.0(react@18.3.1):
+    dependencies:
+      react: 18.3.1
 
   magic-string@0.30.21:
     dependencies:
@@ -4508,6 +4578,10 @@ snapshots:
 
   nat-sampler@1.0.1: {}
 
+  node-fetch@2.7.0:
+    dependencies:
+      whatwg-url: 5.0.0
+
   node-releases@2.0.54: {}
 
   noise-curve-ed@2.1.0(bare-abort-controller@1.1.2)(bare-buffer@3.7.1)(bare-events@2.9.2(bare-abort-controller@1.1.2))(bare-url@2.5.4):
@@ -4535,6 +4609,8 @@ snapshots:
       - bare-url
       - react-native-b4a
       - sodium-javascript
+
+  opencollective-postinstall@2.0.3: {}
 
   paparam@1.13.0: {}
 
@@ -4654,6 +4730,8 @@ snapshots:
       - react-native-b4a
 
   refcounter@1.0.0: {}
+
+  regenerator-runtime@0.13.11: {}
 
   require-addon@1.2.0(bare-url@2.5.4):
     dependencies:
@@ -4844,6 +4922,22 @@ snapshots:
       - bare-abort-controller
       - react-native-b4a
 
+  tesseract.js-core@7.0.0: {}
+
+  tesseract.js@7.0.0:
+    dependencies:
+      bmp-js: 0.1.0
+      idb-keyval: 6.3.0
+      is-url: 1.2.4
+      node-fetch: 2.7.0
+      opencollective-postinstall: 2.0.3
+      regenerator-runtime: 0.13.11
+      tesseract.js-core: 7.0.0
+      wasm-feature-detect: 1.9.0
+      zlibjs: 0.3.1
+    transitivePeerDependencies:
+      - encoding
+
   test-tmp@1.4.0(bare-abort-controller@1.1.2)(bare-buffer@3.7.1):
     dependencies:
       bare-fs: 4.8.1(bare-abort-controller@1.1.2)(bare-buffer@3.7.1)
@@ -4879,6 +4973,8 @@ snapshots:
   tinyspy@3.0.2: {}
 
   tmatch@5.0.0: {}
+
+  tr46@0.0.3: {}
 
   tronweb@6.5.0:
     dependencies:
@@ -5002,6 +5098,15 @@ snapshots:
       - supports-color
       - terser
 
+  wasm-feature-detect@1.9.0: {}
+
+  webidl-conversions@3.0.1: {}
+
+  whatwg-url@5.0.0:
+    dependencies:
+      tr46: 0.0.3
+      webidl-conversions: 3.0.1
+
   which-runtime@1.4.0: {}
 
   why-is-node-running@2.3.0:
@@ -5020,5 +5125,7 @@ snapshots:
       b4a: 1.8.1
     transitivePeerDependencies:
       - react-native-b4a
+
+  zlibjs@0.3.1: {}
 
   zod@4.6.1: {}

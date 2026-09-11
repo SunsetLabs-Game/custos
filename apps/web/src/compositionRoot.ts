@@ -1,24 +1,23 @@
-import { AnalyzeSendIntent, RecordUserDecision, SyncRiskList, TranslateAndAnalyzeMessage } from "@custos/core";
+import { AnalyzeSendIntent, AnalyzeScreenshot, RecordUserDecision, SyncRiskList, TranslateAndAnalyzeMessage } from "@custos/core";
 import type { WalletPort } from "@custos/core";
-import { QvacScamDetectionAdapter, QvacTranslateAdapter } from "@custos/adapters-qvac";
+import { QvacScamDetectionAdapter, QvacTranslateAdapter, QvacVisionAdapter } from "@custos/adapters-qvac";
 import { HyperswarmRiskListAdapter } from "@custos/adapters-p2p";
 import { LocalAuditLogAdapter } from "@custos/adapters-storage";
+import { TronUsdtWalletAdapter } from "./wallet/TronUsdtWalletAdapter.js";
+import { TesseractVisionClient } from "./vision/TesseractVisionClient.js";
 
-/**
- * Single place where ports are bound to adapters — nothing outside this file
- * should construct an adapter.
- *
- * `walletPort` is `null` in this Vite/browser build on purpose: WDK needs a
- * BIP-39 seed, and a real signing key must never ship inside a browser
- * bundle served to hackathon judges. `apps/web` still runs the full
- * prepare -> friction/block -> confirm flow against `walletPort`; it just
- * shows "wallet not connected" instead of calling `commit`. A Node/Bare/Expo
- * host wires a real one via `createTronWdkAccount` + `WdkWalletAdapter`.
- */
 const scamDetection = new QvacScamDetectionAdapter();
 const translation = new QvacTranslateAdapter();
-const riskList = new HyperswarmRiskListAdapter();
-const auditLog = new LocalAuditLogAdapter();
+export const riskList = new HyperswarmRiskListAdapter();
+export const auditLog = new LocalAuditLogAdapter();
+
+/** Real OCR, running in a Web Worker on this device — bytes never leave the browser. */
+export const visionClient = new TesseractVisionClient();
+export const visionAdapter = new QvacVisionAdapter(visionClient);
+export const analyzeScreenshot = new AnalyzeScreenshot({
+  ocr: visionAdapter,
+  scamDetection,
+});
 
 export const analyzeSendIntent = new AnalyzeSendIntent({ scamDetection, riskList });
 export const translateAndAnalyzeMessage = new TranslateAndAnalyzeMessage({
@@ -27,4 +26,8 @@ export const translateAndAnalyzeMessage = new TranslateAndAnalyzeMessage({
 });
 export const recordUserDecision = new RecordUserDecision({ auditLog });
 export const syncRiskList = new SyncRiskList({ riskList });
-export const walletPort: WalletPort | null = null;
+
+/** Real Nile-testnet USDT wallet: prepare() quotes, commit() signs and broadcasts. */
+export const tronWallet = new TronUsdtWalletAdapter();
+export const walletPort: WalletPort = tronWallet;
+

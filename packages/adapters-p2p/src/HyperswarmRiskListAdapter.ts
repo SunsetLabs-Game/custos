@@ -1,10 +1,12 @@
-import type { RiskListPort, Address, AddressReputation, ChainNetwork } from "@custos/core";
-import { LocalRiskListAdapter } from "./LocalRiskListAdapter.js";
+import type { RiskListPort, Address, AddressReputation, ChainNetwork, ScamReportReason } from "@custos/core";
+import { LocalRiskListAdapter, type FlaggedAddress } from "./LocalRiskListAdapter.js";
 
 export interface P2pReportMessage {
   readonly value: string;
   readonly network: ChainNetwork;
   readonly reportedAt: string;
+  /** Why the peer flagged it, so receivers can weigh the claim. */
+  readonly reason?: ScamReportReason;
 }
 
 /**
@@ -37,6 +39,7 @@ export class HyperswarmRiskListAdapter implements RiskListPort {
         { value: message.value, network: message.network },
         "p2p-sync",
         new Date(message.reportedAt),
+        message.reason,
       );
     });
   }
@@ -45,16 +48,27 @@ export class HyperswarmRiskListAdapter implements RiskListPort {
     return this.local.lookup(address);
   }
 
-  async reportScam(address: Address): Promise<void> {
-    await this.local.reportScam(address);
+  async reportScam(address: Address, reason?: ScamReportReason): Promise<void> {
+    await this.local.reportScam(address, reason);
     this.swarm?.broadcast({
       value: address.value,
       network: address.network,
       reportedAt: new Date().toISOString(),
+      reason,
     });
   }
 
   async sync(): Promise<void> {
     await this.swarm?.sync();
+  }
+
+  /** Every address in the local cache, newest first. */
+  list(): readonly FlaggedAddress[] {
+    return this.local.list();
+  }
+
+  /** True only when a real gossip transport is attached (never in the browser). */
+  get peerSyncEnabled(): boolean {
+    return this.swarm !== undefined;
   }
 }

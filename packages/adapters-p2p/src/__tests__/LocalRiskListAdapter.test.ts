@@ -41,3 +41,51 @@ describe("LocalRiskListAdapter", () => {
     expect((await adapter.lookup(address)).source).toBe("local-user-report");
   });
 });
+
+describe("list", () => {
+  it("preserves the original address casing (Tron base58 is case-sensitive)", async () => {
+    const adapter = new LocalRiskListAdapter();
+    const address = { value: "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t", network: "tron" } as const;
+    await adapter.reportScam(address);
+
+    expect(adapter.list()).toHaveLength(1);
+    expect(adapter.list()[0]!.address.value).toBe("TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t");
+  });
+
+  it("still looks up case-insensitively", async () => {
+    const adapter = new LocalRiskListAdapter();
+    await adapter.reportScam({ value: "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t", network: "tron" });
+
+    const lower = await adapter.lookup({ value: "tr7nhqjekqxgtci8q8zy4pl8otszgjlj6t", network: "tron" });
+    expect(lower.flagged).toBe(true);
+  });
+});
+
+describe("report reasons", () => {
+  it("keeps the cause so a flagged address can be audited later", async () => {
+    const adapter = new LocalRiskListAdapter();
+    const address = { value: "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t", network: "tron" } as const;
+
+    await adapter.reportScam(address, {
+      category: "pig-butchering",
+      detail: 'Detectado en el análisis: "% diario"',
+    });
+
+    const [entry] = adapter.list();
+    expect(entry!.reason?.category).toBe("pig-butchering");
+    expect(entry!.reason?.detail).toContain("% diario");
+  });
+
+  it("keeps an existing reason when a later peer report carries none", async () => {
+    const adapter = new LocalRiskListAdapter();
+    const address = { value: "TKxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx", network: "tron" } as const;
+
+    adapter.recordReport(address, "p2p-sync", new Date(), {
+      category: "fake-support",
+      detail: "Reportada por un par",
+    });
+    adapter.recordReport(address, "p2p-sync", new Date());
+
+    expect(adapter.list()[0]!.reason?.category).toBe("fake-support");
+  });
+});

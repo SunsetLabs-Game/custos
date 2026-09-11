@@ -1,5 +1,9 @@
 # Custos
 
+[![▶ Demo video](https://img.shields.io/badge/%E2%96%B6%20Demo%20video-Watch%20on%20YouTube-FF0000?style=for-the-badge&logo=youtube&logoColor=white)](https://youtu.be/3LAOwk1f-Oo)
+[![Live demo](https://img.shields.io/badge/Live%20demo-custos--one--sand.vercel.app-10B981?style=for-the-badge&logo=vercel&logoColor=white)](https://custos-one-sand.vercel.app)
+[![Network](https://img.shields.io/badge/Network-Tron%20Nile%20testnet-38BDF8?style=for-the-badge)](https://nile.tronscan.org)
+
 **On-device anti-scam shield for USDT sends.** Before a transfer is signed, Custos
 analyzes the destination address and the pasted scam-chat context entirely on the
 user's device — no chat content, no address, no screenshot ever leaves the phone
@@ -9,6 +13,21 @@ server to trust or censor.
 
 Built for the [Decentralized AI Hackathon](https://www.trydojo.io/hackathons/decentralized-ai-hackathon)
 (ISD Summit, Panama, Sept 9–11 2026).
+
+## Demo
+
+| | |
+|---|---|
+| **▶ Demo video** | **https://youtu.be/3LAOwk1f-Oo** |
+| **🌐 Live demo** | **https://custos-one-sand.vercel.app** |
+
+[<img src="https://img.youtube.com/vi/3LAOwk1f-Oo/maxresdefault.jpg" alt="Watch the Custos demo video" width="640">](https://youtu.be/3LAOwk1f-Oo)
+
+The live demo runs on **Tron Nile testnet** and creates its own wallet in your
+browser, so there is nothing to install. Approved transfers are really signed and
+broadcast, and return a transaction hash you can open on Tronscan. To sign, the
+wallet needs testnet TRX (gas) and testnet USDT: copy its address from the
+**Escudo** tab and top it up at the [Nile faucet](https://nileex.io/join/getJoinPage).
 
 ## Why this exists
 

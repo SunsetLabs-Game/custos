@@ -48,10 +48,10 @@ export class QvacScamDetectionAdapter implements ScamDetectionPort {
   }
 
   private heuristicMatches(text: string): ScamMatch[] {
-    const lower = text.toLowerCase();
+    const haystack = normalize(text);
     const matches: ScamMatch[] = [];
     for (const pattern of this.patterns) {
-      const hit = pattern.heuristics.find((h) => lower.includes(h.toLowerCase()));
+      const hit = pattern.heuristics.find((h) => haystack.includes(normalize(h)));
       if (hit) {
         matches.push({
           pattern,
@@ -70,6 +70,18 @@ export class QvacScamDetectionAdapter implements ScamDetectionPort {
     if (hasHeuristicHit) return true;
     return trimmed.length >= MIN_MODEL_CHARS;
   }
+}
+
+/**
+ * Lowercase and strip diacritics so a Spanish heuristic matches whether or not
+ * the victim typed the accents ("inversión" vs "inversion") — scam chats are
+ * routinely retyped or machine-translated without them.
+ */
+function normalize(value: string): string {
+  return value
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
 }
 
 export function buildClassifyPrompt(text: string, patterns: readonly ScamPattern[]): string {

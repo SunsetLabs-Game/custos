@@ -1,10 +1,10 @@
 import type { RiskAssessment, TranslatedChatMessage } from "@custos/core";
-import { presentMatch, presentRiskLevel } from "./riskPresentation.js";
-import { color, font, radius, space } from "./theme.js";
+import { presentMatch, presentRiskLevel, presentSummary } from "./riskPresentation.js";
+import { Icon } from "./Icon.js";
 
 function networkLabel(network: string): string {
-  if (network === "tron") return "Tron";
-  if (network === "ethereum") return "Ethereum";
+  if (network === "tron") return "Tron (TRC-20)";
+  if (network === "ethereum") return "Ethereum (ERC-20)";
   return network;
 }
 
@@ -21,108 +21,118 @@ export function RiskAssessmentPanel({
   return (
     <section
       aria-labelledby="risk-heading"
+      className={`glass-panel ${assessment.level >= 4 ? "glow-critical" : assessment.level >= 2 ? "glow-elevated" : "glow-safe"}`}
       style={{
-        marginTop: space.lg,
-        padding: space.lg,
-        borderRadius: radius.card,
-        background: view.bg,
-        border: `1px solid ${view.border}`,
-        boxShadow: `0 0 0 1px ${view.border}`,
+        padding: "24px",
       }}
     >
       <h2
         id="risk-heading"
-        style={{ margin: 0, fontFamily: font.body, fontSize: 16, fontWeight: 600, color: view.color }}
+        style={{ margin: 0, fontSize: "18px", fontWeight: 800, color: "#ffffff", display: "flex", alignItems: "center", gap: "10px" }}
       >
-        <span aria-hidden="true" style={{ marginRight: space.sm }}>
-          {view.icon}
-        </span>
-        {view.label}
+        <Icon name={assessment.level >= 4 ? "block" : assessment.level >= 2 ? "warning" : "check_circle"} size={22} style={{ color: view.color }} />
+        <span>{view.label}</span>
       </h2>
-      <p style={{ marginTop: space.sm, fontFamily: font.body, fontSize: 14, color: color.textSecondary }}>
+      
+      <p style={{ marginTop: "8px", fontSize: "14px", color: "var(--upguard-text-body)" }}>
         {view.hint}
       </p>
 
       {network && (
         <span
-          style={{
-            display: "inline-block",
-            marginTop: space.sm,
-            padding: "2px 8px",
-            borderRadius: radius.badge,
-            fontFamily: font.mono,
-            fontSize: 10,
-            fontWeight: 600,
-            letterSpacing: "0.06em",
-            textTransform: "uppercase",
-            color: color.onDevice,
-            background: color.onDeviceBg,
-            border: `1px solid ${color.onDeviceBorder}`,
-          }}
+          className="badge badge-tech"
+          style={{ marginTop: "12px" }}
         >
-          {networkLabel(network)} detected
+          <Icon name="hub" size={12} />
+          {networkLabel(network)} Detectada
         </span>
       )}
 
       {translated && (
-        <p style={{ marginTop: space.sm, fontFamily: font.body, fontSize: 13, color: color.textMuted }}>
-          Translated on-device: {translated.originalLanguage} → {translated.targetLanguage}
-        </p>
+        <div style={{
+          marginTop: "12px",
+          padding: "10px 14px",
+          borderRadius: "var(--radius-input)",
+          background: "var(--color-info-bg)",
+          border: "1px solid var(--color-info-border)",
+          fontSize: "12px",
+          color: "var(--color-info)",
+          display: "flex",
+          alignItems: "center",
+          gap: "8px"
+        }}>
+          <Icon name="translate" size={16} />
+          <span>TranslatePsy On-Device: Idioma detectado ({translated.originalLanguage.toUpperCase()}) → Traducido localmente</span>
+        </div>
       )}
 
-      <p style={{ marginTop: space.md, fontFamily: font.body, fontSize: 14, color: color.textPrimary }}>
-        {assessment.summary}
+      <p style={{ marginTop: "16px", fontSize: "14px", color: "#f8fafc", lineHeight: 1.5, fontWeight: 500 }}>
+        {presentSummary(assessment)}
       </p>
 
       {assessment.matches.length > 0 && (
-        <ul style={{ listStyle: "none", margin: `${space.md}px 0 0`, padding: 0, display: "grid", gap: space.sm }}>
-          {assessment.matches.map((match, index) => {
-            const presented = presentMatch(match);
-            return (
-              <li
-                key={`${match.pattern.id}-${index}`}
-                style={{
-                  padding: space.md,
-                  borderRadius: radius.input,
-                  background: color.surfaceRecessed,
-                  border: `1px solid ${color.stroke}`,
-                }}
-              >
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: space.sm }}>
-                  <strong style={{ fontFamily: font.body, fontSize: 13, color: color.textPrimary }}>
-                    {presented.categoryLabel}
-                  </strong>
-                  <span
-                    style={{
-                      flexShrink: 0,
-                      padding: "2px 8px",
-                      borderRadius: radius.badge,
-                      fontFamily: font.mono,
-                      fontSize: 11,
-                      color: view.color,
-                      background: view.bg,
-                      border: `1px solid ${view.border}`,
-                    }}
-                  >
-                    {presented.confidenceLabel}
-                  </span>
-                </div>
-                {presented.evidence && (
-                  <div
-                    style={{
-                      marginTop: space.xs,
-                      fontFamily: font.mono,
-                      fontSize: 12,
-                      color: color.textMuted,
-                    }}
-                  >
-                    "{presented.evidence}"
+        <div style={{ marginTop: "20px", display: "flex", flexDirection: "column", gap: "12px" }}>
+          <span style={{ fontSize: "12px", textTransform: "uppercase", fontWeight: 700, letterSpacing: "0.04em", color: "#94a3b8" }}>
+            Coincidencias de Patrón Detectadas ({assessment.matches.length}):
+          </span>
+
+          <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: "12px" }}>
+            {assessment.matches.map((match, index) => {
+              const presented = presentMatch(match);
+              return (
+                <li
+                  key={`${match.pattern.id}-${index}`}
+                  style={{
+                    padding: "14px 18px",
+                    borderRadius: "var(--radius-card)",
+                    background: "var(--upguard-layer-strong)",
+                    border: "1px solid var(--upguard-border)",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "6px"
+                  }}
+                >
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px", flexWrap: "wrap" }}>
+                    <strong style={{ fontSize: "13px", color: "#f8fafc", display: "flex", alignItems: "center", gap: "8px" }}>
+                      <Icon name="warning" size={16} style={{ color: view.color }} />
+                      {presented.categoryLabel}
+                    </strong>
+                    <span
+                      style={{
+                        padding: "2px 8px",
+                        borderRadius: "6px",
+                        fontFamily: "var(--font-mono)",
+                        fontSize: "11px",
+                        fontWeight: 700,
+                        color: view.color,
+                        background: view.bg,
+                        border: `1px solid ${view.border}`,
+                      }}
+                    >
+                      {presented.confidenceLabel}
+                    </span>
                   </div>
-                )}
-              </li>
-            );
-          })}
-        </ul>
+                  {presented.evidence && (
+                    <div
+                      style={{
+                        marginTop: "4px",
+                        fontFamily: "var(--font-mono)",
+                        fontSize: "12px",
+                        color: "var(--upguard-text-muted)",
+                        background: "var(--upguard-bg)",
+                        padding: "8px 12px",
+                        borderRadius: "6px",
+                        border: "1px solid var(--upguard-border)"
+                      }}
+                    >
+                      "{presented.evidence}"
+                    </div>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        </div>
       )}
     </section>
   );

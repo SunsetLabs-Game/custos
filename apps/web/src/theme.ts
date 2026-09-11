@@ -7,8 +7,12 @@
  */
 export const color = {
   canvas: "#090d16",
+  canvasLow: "#060e20",
+  surfaceLow: "#131b2e",
   surface: "#0f172a",
   surfaceRecessed: "#1e293b",
+  surfaceHigh: "#222a3d",
+  surfaceHighest: "#2d3449",
   stroke: "#334155",
   strokeStrong: "#475569",
 

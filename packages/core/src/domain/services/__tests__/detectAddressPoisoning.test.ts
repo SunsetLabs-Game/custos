@@ -51,3 +51,23 @@ describe("detectAddressPoisoning", () => {
     expect(match).toBeUndefined();
   });
 });
+
+describe("the address used by the web demo's poisoning preset", () => {
+  // Guards against the preset drifting into an address that shares only the
+  // prefix — which silently scores "no risk" and makes the demo look broken.
+  const known = { value: "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t", network: "tron" } as const;
+  const preset = { value: "TR7NHqjeKQxGTCi8q8ZY4pL8ot5zgjLj6t", network: "tron" } as const;
+
+  it("is a genuine lookalike of the seeded recent recipient", () => {
+    const match = detectAddressPoisoning(preset, [known]);
+    expect(match).toBeDefined();
+    expect(match!.pattern.category).toBe("address-poisoning");
+  });
+
+  it("differs from the known address only in the middle", () => {
+    expect(preset.value).not.toBe(known.value);
+    expect(preset.value.slice(0, 6)).toBe(known.value.slice(0, 6));
+    expect(preset.value.slice(-6)).toBe(known.value.slice(-6));
+    expect(preset.value).toHaveLength(34);
+  });
+});

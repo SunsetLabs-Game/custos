@@ -1,4 +1,4 @@
-import type { RiskListPort } from "../../domain/ports/RiskListPort.js";
+import type { RiskListPort, ScamReportReason } from "../../domain/ports/RiskListPort.js";
 import type { Address } from "../../domain/entities/Address.js";
 
 export interface SyncRiskListDeps {
@@ -13,7 +13,7 @@ export class SyncRiskList {
     await this.deps.riskList.sync();
   }
 
-  async reportScam(address: Address): Promise<void> {
-    await this.deps.riskList.reportScam(address);
+  async reportScam(address: Address, reason?: ScamReportReason): Promise<void> {
+    await this.deps.riskList.reportScam(address, reason);
   }
 }

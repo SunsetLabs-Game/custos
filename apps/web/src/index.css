@@ -1,0 +1,809 @@
+:root {
+  /*
+   * Custos surface ramp. Each step is a visible tone apart so panels separate
+   * by surface, not by outline — borders are a hairline accent, never the thing
+   * doing the work. Colour below is reserved for risk state only.
+   */
+  --upguard-bg: #080b12;
+  --upguard-bg-low: #05070d;
+  --upguard-layer-soft: #10151f;
+  --upguard-layer-strong: #171d2a;
+  --upguard-surface-high: #212836;
+  --upguard-surface-highest: #2b3344;
+  --upguard-border: #242c3a;
+  --upguard-border-strong: #323c4e;
+  --upguard-border-subtle: rgba(255, 255, 255, 0.05);
+
+  /* Typography colors */
+  --upguard-text-headings: #f2f5f9;
+  --upguard-text-body: #939eb1;
+  --upguard-text-muted: #5f6b7e;
+
+  --upguard-btn-primary-bg: #ffffff;
+  --upguard-btn-primary-text: #000000;
+
+  --color-safe: #10b981;
+  --color-safe-bg: rgba(6, 78, 59, 0.20);
+  --color-safe-border: rgba(16, 185, 129, 0.35);
+
+  --color-elevated: #f59e0b;
+  --color-elevated-bg: rgba(120, 53, 15, 0.25);
+  --color-elevated-border: rgba(245, 158, 11, 0.40);
+
+  --color-critical: #ef4444;
+  --color-critical-bg: rgba(127, 29, 29, 0.30);
+  --color-critical-border: rgba(239, 68, 68, 0.50);
+
+  --color-info: #38bdf8;
+  --color-info-bg: rgba(14, 116, 144, 0.15);
+  --color-info-border: rgba(56, 189, 248, 0.30);
+
+  --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+
+  /* Structural radius scale — restrained, no full pills on primary actions */
+  --radius-badge: 4px;
+  --radius-input: 6px;
+  --radius-card: 8px;
+  --radius-sheet: 12px;
+  --radius-pill: 999px;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  min-height: 100vh;
+  background-color: var(--upguard-bg);
+  color: var(--upguard-text-body);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Background effects — restrained, ambient, reserved for a calm technical feel */
+.app-bg-glow {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+.app-bg-glow::before,
+.app-bg-glow::after {
+  content: '';
+  position: absolute;
+  width: 60vw;
+  height: 60vw;
+  max-width: 900px;
+  max-height: 900px;
+  border-radius: 50%;
+  filter: blur(10px);
+  will-change: transform, opacity;
+}
+.app-bg-glow::before {
+  top: -20%;
+  left: 15%;
+  background: radial-gradient(circle, rgba(16, 185, 129, 0.22) 0%, rgba(16, 185, 129, 0.05) 45%, rgba(16, 185, 129, 0) 70%);
+  animation: drift-a 22s ease-in-out infinite;
+}
+.app-bg-glow::after {
+  bottom: -25%;
+  right: 5%;
+  background: radial-gradient(circle, rgba(56, 189, 248, 0.16) 0%, rgba(56, 189, 248, 0.04) 45%, rgba(56, 189, 248, 0) 70%);
+  animation: drift-b 26s ease-in-out infinite;
+}
+
+@keyframes drift-a {
+  0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.85; }
+  50% { transform: translate(4%, 6%) scale(1.12); opacity: 1; }
+}
+@keyframes drift-b {
+  0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.7; }
+  50% { transform: translate(-5%, -4%) scale(1.08); opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-bg-glow::before,
+  .app-bg-glow::after {
+    animation: none;
+  }
+}
+
+.app-bg-grid {
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(to right, rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+  background-size: 40px 40px;
+  mask-image: linear-gradient(to bottom, black 15%, transparent 75%);
+  -webkit-mask-image: linear-gradient(to bottom, black 15%, transparent 75%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--upguard-bg);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--upguard-layer-strong);
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--upguard-border);
+}
+
+/* Header Nav Bar */
+.upguard-navbar {
+  background-color: rgba(9, 13, 22, 0.75);
+  border-bottom: 1px solid var(--upguard-border-subtle);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  width: 100%;
+}
+
+/* Structural Cards — flat, bordered, no ambient drop shadow by default */
+.upguard-card {
+  background-color: var(--upguard-layer-soft);
+  border: 1px solid var(--upguard-border);
+  border-radius: var(--radius-card);
+  padding: 28px;
+  transition: border-color 0.25s ease, background-color 0.25s ease, transform 0.25s ease;
+}
+
+/*
+ * Card tiers. The page gets rhythm from mixing these rather than repeating one
+ * bordered box everywhere — that repetition is what read as "cargado".
+ */
+
+/* Tier 1: the primary working surface (the send form). Brightest, framed. */
+.card-focus {
+  background-color: var(--upguard-layer-soft);
+  border: 1px solid var(--upguard-border-strong);
+  border-radius: var(--radius-card);
+  padding: 26px;
+}
+
+/* Tier 2: grid items. No border at all — separated by surface tone only. */
+.card-flush {
+  background-color: var(--upguard-layer-soft);
+  border: 1px solid transparent;
+  border-radius: var(--radius-card);
+  padding: 20px;
+  transition: background-color 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
+}
+.card-flush:hover {
+  background-color: var(--upguard-layer-strong);
+  border-color: var(--upguard-border);
+}
+
+/* Tier 3: list rows. Lightest — a rule between items, no box. */
+.row-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--upguard-border);
+  transition: background-color 0.18s ease;
+}
+.row-item:last-child {
+  border-bottom: none;
+}
+
+/* Section heading block — replaces the badge+title+subtitle stack */
+.section-head {
+  margin-bottom: 24px;
+}
+.section-head h2 {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--upguard-text-headings);
+  margin: 0;
+}
+.section-head p {
+  margin: 6px 0 0;
+  font-size: 13.5px;
+  color: var(--upguard-text-body);
+  max-width: 620px;
+}
+
+/* Eyebrow label — a plain typographic kicker instead of a bordered badge */
+.eyebrow {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--upguard-text-muted);
+  margin-bottom: 8px;
+}
+
+/* Monospace on-chain values (addresses, hashes, amounts) */
+.mono {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Key/value line used across the wallet and transfer summaries */
+.kv {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 7px 0;
+  font-size: 12.5px;
+}
+.kv dt {
+  color: var(--upguard-text-muted);
+}
+.kv dd {
+  margin: 0;
+  color: var(--upguard-text-headings);
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.upguard-card-hover {
+  cursor: pointer;
+}
+.upguard-card-hover:hover {
+  border-color: var(--upguard-surface-high);
+  background-color: var(--upguard-layer-strong);
+  transform: translateY(-2px);
+}
+
+/* Flowing dot along a process-diagram connector line */
+.flow-dot {
+  position: absolute;
+  top: 50%;
+  left: 0%;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--color-safe);
+  box-shadow: 0 0 10px var(--color-safe);
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  animation: flow-dot 4s linear infinite;
+}
+@keyframes flow-dot {
+  0% { left: 0%; opacity: 0; }
+  8% { opacity: 1; }
+  92% { opacity: 1; }
+  100% { left: 100%; opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .flow-dot { animation: none; opacity: 0; }
+}
+
+/* Generic hover-lift for tinted cards that keep their own background */
+.hover-lift {
+  transition: transform 0.2s ease, filter 0.2s ease, border-color 0.2s ease;
+}
+.hover-lift:hover {
+  transform: translateY(-3px);
+  filter: brightness(1.12);
+}
+
+/* Search Widget */
+.upguard-search-card {
+  background-color: var(--upguard-layer-soft);
+  border: 1px solid var(--upguard-border);
+  border-radius: var(--radius-card);
+  padding: 8px 8px 8px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: border-color 0.2s ease;
+}
+.upguard-search-card:focus-within {
+  border-color: var(--upguard-surface-high);
+}
+
+.upguard-search-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: var(--upguard-text-headings);
+  font-family: var(--font-mono);
+  font-size: 14px;
+  outline: none;
+}
+.upguard-search-input::placeholder {
+  color: var(--upguard-text-muted);
+}
+
+/* Buttons — structural corners, never full pills */
+.btn-upguard-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 24px;
+  background: #ffffff;
+  color: #000000;
+  font-weight: 700;
+  font-size: 14px;
+  border-radius: var(--radius-input);
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+.btn-upguard-primary:hover:not(:disabled) {
+  background: #e4e4e7;
+}
+.btn-upguard-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 18px;
+  background-color: var(--upguard-layer-strong);
+  border: 1px solid var(--upguard-border);
+  color: var(--upguard-text-headings);
+  font-weight: 600;
+  font-size: 13px;
+  border-radius: var(--radius-input);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.btn-upguard-secondary:hover:not(:disabled) {
+  background-color: var(--upguard-surface-high);
+  border-color: var(--upguard-border);
+}
+
+/* Status Badges — 4px, laser-etched hardware tags */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: var(--radius-badge);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+.badge-safe {
+  background: var(--color-safe-bg);
+  color: var(--color-safe);
+  border: 1px solid var(--color-safe-border);
+}
+.badge-elevated {
+  background: var(--color-elevated-bg);
+  color: var(--color-elevated);
+  border: 1px solid var(--color-elevated-border);
+}
+.badge-critical {
+  background: var(--color-critical-bg);
+  color: var(--color-critical);
+  border: 1px solid var(--color-critical-border);
+}
+.badge-tech {
+  background: var(--upguard-layer-strong);
+  color: var(--upguard-text-headings);
+  border: 1px solid var(--upguard-border);
+}
+
+/* Nav Tabs — structural, not pills */
+.nav-tab {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: var(--radius-input);
+  color: var(--upguard-text-body);
+  font-weight: 600;
+  font-size: 13.5px;
+  background: transparent;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+.nav-tab:hover {
+  color: var(--upguard-text-headings);
+  background: rgba(255, 255, 255, 0.04);
+}
+.nav-tab.active {
+  color: var(--upguard-text-headings);
+  background: var(--upguard-layer-strong);
+  border-color: var(--upguard-border);
+}
+
+/* Pulse Dot */
+.pulse-dot {
+  position: relative;
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--color-safe);
+}
+.pulse-dot::after {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+  background-color: var(--color-safe);
+  opacity: 0.4;
+  animation: pulse-ring 2.5s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+}
+@keyframes pulse-ring {
+  0% { transform: scale(0.9); opacity: 0.6; }
+  100% { transform: scale(2.2); opacity: 0; }
+}
+
+/* Form Controls */
+.form-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--upguard-text-body);
+}
+.form-input {
+  width: 100%;
+  padding: 12px 14px;
+  background: var(--upguard-layer-soft);
+  border: 1px solid var(--upguard-layer-strong);
+  border-radius: var(--radius-input);
+  color: var(--upguard-text-headings);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  outline: none;
+  transition: all 0.2s ease;
+}
+.form-input.mono {
+  font-family: var(--font-mono);
+}
+.form-input:focus {
+  border-color: var(--upguard-border);
+  background-color: var(--upguard-layer-strong);
+}
+.form-input::placeholder {
+  color: var(--upguard-text-muted);
+}
+
+/* Glass Panel & Semantic Glow — glow reserved exclusively for risk states */
+.glass-panel {
+  background-color: var(--upguard-layer-soft);
+  border: 1px solid var(--upguard-border);
+  border-radius: var(--radius-card);
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.glow-safe {
+  border-color: var(--color-safe-border);
+  box-shadow: 0 0 0 1px rgba(16, 185, 129, 0.20), 0 4px 16px -2px rgba(16, 185, 129, 0.12);
+}
+.glow-elevated {
+  border-color: var(--color-elevated-border);
+  box-shadow: 0 0 0 1px rgba(245, 158, 11, 0.25), 0 4px 18px -2px rgba(245, 158, 11, 0.15);
+}
+.glow-critical {
+  border-color: var(--color-critical-border);
+  box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.35), 0 4px 20px -2px rgba(239, 68, 68, 0.20);
+}
+
+/* Action Buttons */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 20px;
+  background-color: var(--upguard-btn-primary-bg);
+  color: var(--upguard-btn-primary-text);
+  font-weight: 700;
+  font-size: 14px;
+  border-radius: var(--radius-input);
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.btn-primary:hover:not(:disabled) {
+  background-color: #e2e8f0;
+}
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 18px;
+  background-color: var(--upguard-layer-strong);
+  border: 1px solid var(--upguard-border);
+  color: var(--upguard-text-headings);
+  font-weight: 600;
+  font-size: 13px;
+  border-radius: var(--radius-input);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.btn-secondary:hover:not(:disabled) {
+  background-color: var(--upguard-surface-high);
+  border-color: var(--upguard-border);
+}
+
+.btn-warning {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 20px;
+  background-color: var(--color-elevated);
+  color: #0b0f19;
+  font-weight: 700;
+  font-size: 14px;
+  border-radius: var(--radius-input);
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.btn-warning:hover:not(:disabled) {
+  background-color: #d97706;
+}
+
+.btn-danger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 20px;
+  background-color: var(--color-critical);
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 14px;
+  border-radius: var(--radius-input);
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.btn-danger:hover:not(:disabled) {
+  background-color: #dc2626;
+}
+
+/*
+ * Every button variant must look disabled when it is. Without this a blocked
+ * send (no gas / not enough USDT) still renders as a bright, clickable CTA.
+ */
+.btn-primary:disabled,
+.btn-secondary:disabled,
+.btn-warning:disabled,
+.btn-danger:disabled,
+.btn-upguard-primary:disabled,
+.btn-upguard-secondary:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* Header shell */
+.nav-inner {
+  max-width: 1140px;
+  margin: 0 auto;
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.nav-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.nav-tabs {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-wrap: wrap;
+}
+
+/* The phone trigger, which names the section you are actually on */
+.nav-burger {
+  display: none;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 12px;
+  background: var(--upguard-layer-strong);
+  border: 1px solid var(--upguard-border);
+  border-radius: var(--radius-input);
+  color: var(--upguard-text-headings);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.nav-burger-label {
+  max-width: 40vw;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Side panel */
+.nav-scrim {
+  position: fixed;
+  inset: 0;
+  background: rgba(4, 7, 12, 0.62);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+  z-index: 1100;
+  animation: scrim-in 0.18s ease;
+}
+@keyframes scrim-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.nav-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: min(310px, 84vw);
+  z-index: 1101;
+  background: var(--upguard-layer-soft);
+  border-left: 1px solid var(--upguard-border);
+  padding: 16px 12px calc(16px + env(safe-area-inset-bottom));
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  animation: drawer-in 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+}
+@keyframes drawer-in {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+.nav-drawer-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 2px 10px 12px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid var(--upguard-border);
+}
+.nav-drawer-close {
+  background: transparent;
+  border: none;
+  color: var(--upguard-text-muted);
+  cursor: pointer;
+  padding: 6px;
+  display: flex;
+  border-radius: var(--radius-badge);
+}
+.nav-drawer-close:hover { color: var(--upguard-text-headings); }
+
+.nav-drawer-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  width: 100%;
+  min-height: 48px;
+  padding: 10px;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-input);
+  color: var(--upguard-text-body);
+  font-family: var(--font-sans);
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+.nav-drawer-item:hover { background: var(--upguard-layer-strong); }
+.nav-drawer-item.active { background: var(--upguard-layer-strong); }
+
+/* The tick that shows which section is selected */
+.nav-drawer-mark {
+  width: 16px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 2px;
+  color: var(--color-safe);
+}
+
+.nav-drawer-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.nav-drawer-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--upguard-text-headings);
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.nav-drawer-item.active .nav-drawer-label { color: var(--color-safe); }
+.nav-drawer-hint { font-size: 12px; line-height: 1.4; color: var(--upguard-text-muted); }
+.nav-drawer-count {
+  font-size: 10px;
+  color: var(--upguard-text-muted);
+  background: var(--upguard-bg);
+  border-radius: var(--radius-badge);
+  padding: 1px 5px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nav-scrim,
+  .nav-drawer { animation: none; }
+}
+
+/* ---- Phone layout ---- */
+@media (max-width: 680px) {
+  .nav-inner { padding: 10px 16px; }
+
+  /* Options move into the side panel, so the strip is gone entirely. */
+  .nav-tabs { display: none; }
+  .nav-burger { display: inline-flex; }
+
+  /* The pipeline connector spans 4 columns; once they stack it means nothing. */
+  .flow-line { display: none; }
+
+  .card-focus { padding: 20px 16px; }
+  .section-head h2 { font-size: 19px; }
+
+  /* Label + trailing meta (network chip, helper link) squeeze badly at 390px. */
+  .form-label,
+  .kv {
+    flex-wrap: wrap;
+    gap: 4px 10px;
+  }
+}
+
+/* Touch targets stay comfortable on a phone. */
+@media (max-width: 680px) and (pointer: coarse) {
+  .btn-upguard-primary,
+  .btn-primary,
+  .btn-warning,
+  .btn-danger {
+    min-height: 44px;
+  }
+}
+
+/* Loading Spinner */
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-top-color: currentColor;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  display: inline-block;
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}

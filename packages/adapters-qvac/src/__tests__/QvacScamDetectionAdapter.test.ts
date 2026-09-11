@@ -122,3 +122,30 @@ describe("QvacScamDetectionAdapter", () => {
     expect(matches).toEqual([]);
   });
 });
+
+describe("Spanish scam text", () => {
+  it("flags a Spanish pig-butchering chat (the UI and presets are Spanish)", async () => {
+    const adapter = new QvacScamDetectionAdapter();
+    const matches = await adapter.analyzeText(
+      "Tu profesor de inversión garantiza un 30% diario. Transfiere 2500 USDT para desbloquear el retiro de tus ganancias.",
+    );
+    expect(matches.length).toBeGreaterThan(0);
+    expect(matches.map((m) => m.pattern.category)).toContain("pig-butchering");
+  });
+
+  it("matches regardless of accents, since chats are often retyped without them", async () => {
+    const adapter = new QvacScamDetectionAdapter();
+    const withAccents = await adapter.analyzeText("Soporte oficial: envíe fondos para verificar su cuenta.");
+    const without = await adapter.analyzeText("Soporte oficial: envie fondos para verificar su cuenta.");
+    expect(withAccents.length).toBeGreaterThan(0);
+    expect(without.length).toBe(withAccents.length);
+  });
+
+  it("still reports nothing for a clean Spanish payment message", async () => {
+    const adapter = new QvacScamDetectionAdapter();
+    const matches = await adapter.analyzeText(
+      "Hola, aquí te envío los 150 USDT correspondientes al pago del diseño del logotipo. Saludos!",
+    );
+    expect(matches).toEqual([]);
+  });
+});

@@ -10,12 +10,15 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@custos/core": "workspace:*",
-    "@custos/adapters-qvac": "workspace:*",
     "@custos/adapters-p2p": "workspace:*",
+    "@custos/adapters-qvac": "workspace:*",
     "@custos/adapters-storage": "workspace:*",
+    "@custos/core": "workspace:*",
+    "lucide-react": "^1.44.0",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react-dom": "^18.3.1",
+    "tesseract.js": "^7.0.0",
+    "tronweb": "6.5.0"
   },
   "devDependencies": {
     "@types/react": "^18.3.12",

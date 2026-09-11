@@ -5,11 +5,11 @@ import { presentMatch, presentRiskLevel } from "../riskPresentation.js";
 
 describe("presentRiskLevel", () => {
   it("maps every RiskLevel to a human label instead of the numeric enum", () => {
-    expect(presentRiskLevel(RiskLevel.None).label).toBe("No known risk");
-    expect(presentRiskLevel(RiskLevel.Low).label).toBe("Low");
-    expect(presentRiskLevel(RiskLevel.Elevated).label).toBe("Elevated - review before sending");
-    expect(presentRiskLevel(RiskLevel.High).label).toBe("High");
-    expect(presentRiskLevel(RiskLevel.Critical).label).toBe("Critical - send blocked");
+    expect(presentRiskLevel(RiskLevel.None).label).toBe("Sin riesgo conocido");
+    expect(presentRiskLevel(RiskLevel.Low).label).toBe("Riesgo bajo");
+    expect(presentRiskLevel(RiskLevel.Elevated).label).toBe("Riesgo elevado — revise antes de enviar");
+    expect(presentRiskLevel(RiskLevel.High).label).toBe("Riesgo alto");
+    expect(presentRiskLevel(RiskLevel.Critical).label).toBe("Riesgo crítico — envío bloqueado");
   });
 
   it("never returns the raw enum number as the label", () => {
@@ -40,9 +40,9 @@ describe("presentMatch", () => {
     };
 
     expect(presentMatch(match)).toEqual({
-      categoryLabel: "Pig-butchering (fake relationship / investment)",
+      categoryLabel: "Pig butchering (relación o inversión falsa)",
       evidence: "guaranteed 30% weekly returns",
-      confidenceLabel: "70% confidence",
+      confidenceLabel: "70% de confianza",
     });
   });
 });
