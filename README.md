@@ -1,5 +1,7 @@
 # Custos
 
+[English](./README.md) · **[Español](./README.es.md)**
+
 [![▶ Demo video](https://img.shields.io/badge/%E2%96%B6%20Demo%20video-Watch%20on%20YouTube-FF0000?style=for-the-badge&logo=youtube&logoColor=white)](https://youtu.be/3LAOwk1f-Oo)
 [![Live demo](https://img.shields.io/badge/Live%20demo-custos--one--sand.vercel.app-10B981?style=for-the-badge&logo=vercel&logoColor=white)](https://custos-one-sand.vercel.app)
 [![Network](https://img.shields.io/badge/Network-Tron%20Nile%20testnet-38BDF8?style=for-the-badge)](https://nile.tronscan.org)
@@ -48,80 +50,92 @@ why translation isn't a side feature here — it's in the critical path.
 
 | Track | Fit | Rationale |
 |---|---|---|
-| **03 — Sovereign Intelligence at the Edge** ($6,000) | ✅ Primary | Fraud detection on sensitive transaction/chat data, inference fully on-device via `@qvac/sdk`, works with intermittent connectivity, P2P risk-list sync via Pears/Hyperswarm as the valued (not required) bonus. |
-| **02 — Tether QVAC Psy** ($1,500) | ✅ Primary | `TranslatePsy` is load-bearing in the main flow (see below), not a cosmetic add-on. `VisionPsy` is a stretch goal for screenshot/QR OCR. |
+| **03 — Sovereign Intelligence at the Edge** ($6,000) | ✅ Primary | Fraud detection on sensitive transaction and chat data, analyzed entirely on the user's device. Nothing is sent to a cloud API, and the settlement path is self-custodial. |
+| **02 — Tether QVAC Psy** ($1,500) | ✅ Primary | The cross-language problem is load-bearing, not cosmetic: the detector ships its phrase list in Spanish and English because scam scripts are translated between languages. `VisionPsy`'s OCR path is implemented and working in the browser. |
 | **01 — Philips Installed-Base Intelligence** ($1,500) | ❌ Not pursued | Different domain (hospital field-service equipment tracking) — no honest way to bridge it to a payments-fraud product without faking relevance. Deliberately skipped rather than bolted on. |
 
-### Where each Psy model is actually load-bearing (not decorative)
+### Where each Psy capability sits, and what actually ships
 
-- **TranslatePsy** — the chat-context box accepts scam text in any language;
-  it's translated on-device before the scam-pattern detector runs. This directly
-  serves the cross-border-scam scenario described above. **Central to the main
-  user flow.**
-- **VisionPsy** *(stretch)* — OCR of pasted screenshots (fake trading dashboards,
-  QR codes containing a destination address) so the same detector can run on
-  image-borne scams, not just text.
+- **VisionPsy (OCR)** — **working in the deployed build.** Upload a screenshot of
+  a chat or a fake trading dashboard and the text and any destination address are
+  extracted on device, then run through the same scam detector. It is backed by
+  `tesseract.js` in a Web Worker rather than QVAC's native model, because
+  `@qvac/sdk` cannot load in a browser bundle. The privacy claim is unchanged:
+  the image never leaves the machine.
+- **TranslatePsy** — the adapter is written against `TranslationPort`, and it is
+  what runs when the app is hosted on Bare or Node. In the browser build the
+  cross-language problem is solved differently: the phrase list itself is
+  bilingual and accent-insensitive, so a Spanish scam script is caught without a
+  translation pass.
 - **MedPsy** — not used; out of domain.
 
 ## How it works
 
-1. User pastes the scammer's chat text (optional) and/or the destination
-   address into Custos before confirming a USDT send in their wallet.
-2. If the chat text isn't in the user's language, `TranslatePsy` translates it
-   on-device.
-3. The (translated) text + address are run through the local scam-pattern
-   detector (`@qvac/sdk` inference — seeded rules + small on-device LLM) for
-   known playbooks: fake investment platforms, "recovery agent" scams, urgency/
-   secrecy pressure, mismatched sender identity, etc.
-4. The destination address is checked against the local risk-address cache,
-   synced peer-to-peer over Hyperswarm (Pears Stack) — no central blocklist
-   server — and against the user's own send history for address-poisoning
-   lookalikes.
-5. WDK `prepare`s the transfer (quote only — this never signs) so a fee/quote
-   is available the moment the risk screen renders.
-6. If risk is detected, Custos surfaces a friction screen *before* WDK is ever
-   asked to `commit` — the user must explicitly acknowledge the warning to
-   proceed, or cancel. A Critical assessment allows only "cancel"; `commit` is
-   never reachable from that state, enforced both in the UI (no proceed
-   button rendered) and in `RecordUserDecision` (throws if the decision isn't
-   `cancelled`).
-7. Every assessment and decision (not the raw chat content) is logged locally
-   for the user's own audit trail.
+This is the flow the deployed web build actually runs:
+
+1. You paste the destination address, the amount, and optionally the scammer's
+   chat message.
+2. Everything is analyzed **in the browser**. Three independent signals run:
+   scam-phrase matching over 12 fraud families (195 phrases, Spanish and
+   English, accent-insensitive), an address-poisoning check against your send
+   history, and a lookup in the local directory of reported addresses.
+3. The strongest signal sets the risk level (see the table below).
+4. If the send is not blocked, the transfer is quoted against a Tron node with a
+   constant call. This reads the real energy cost and **never signs anything**.
+5. The risk level decides the friction: proceed, demand an explicit
+   confirmation, or refuse to prepare a transaction at all.
+6. On confirmation, the transfer is signed in the browser and broadcast to Tron
+   Nile, returning a transaction hash you can open on Tronscan.
+7. The assessment and the decision are written to a local audit log. The chat
+   text never is.
+
+### How risk is scored
+
+Signals are independent and the strongest one wins, so any single signal can
+raise the level on its own.
+
+| Signal | Confidence | Resulting level | What the app does |
+|---|---|---|---|
+| Address already reported | forced | **Critical** | No transaction is prepared. There is nothing to sign. |
+| Address poisoning (same first and last 6 chars as a past recipient) | 0.90 | **Critical** | Same hard block. |
+| Scam phrase matched in the chat | 0.60 | **High** | Shows the exact phrase that matched and demands an explicit confirmation. |
+| Nothing matched | 0 | **None** | Signing proceeds without friction. |
+
+Thresholds: `>= 0.85` critical, `>= 0.6` high, `>= 0.35` elevated, below that low
+or none. A hard block is enforced twice: the proceed button is never rendered,
+and `RecordUserDecision` throws if a critical assessment resolves to anything
+other than `cancelled`.
 
 ```mermaid
 flowchart TD
     subgraph Input["1 · Input — nothing leaves the device"]
-        A["Destination address"]
+        A["Destination address + amount"]
         B["Pasted chat text (optional)"]
     end
 
-    subgraph Analysis["2 · On-device analysis — QVAC"]
-        C{"Chat language ==<br/>user language?"}
-        D["TranslatePsy<br/>translates on-device"]
-        E["Scam-pattern detector<br/>heuristics + local LLM"]
-        F["Risk-address lookup<br/>local cache + P2P sync"]
+    subgraph Analysis["2 · On-device analysis"]
+        E["Scam-phrase detector<br/>12 families · 195 phrases · ES + EN"]
+        F["Reported-address directory<br/>local cache"]
         G["Address-poisoning check<br/>vs. recent recipients"]
     end
 
-    subgraph Decision["3 · Risk decision + WDK prepare"]
-        H{"Risk level"}
-        Pr["WDK prepare<br/>quote only, never signs"]
+    subgraph Decision["3 · Risk decision"]
+        H{"Strongest signal"}
+        Pr["Quote against the node<br/>constant call, never signs"]
         I["None / Low<br/>proceeds without interruption"]
-        J["Elevated / High<br/>friction screen: ack or cancel"]
-        K["Critical<br/>hard block: cancel only"]
+        J["Elevated / High<br/>explicit confirmation required"]
+        K["Critical<br/>no transaction is prepared"]
     end
 
     subgraph Settlement["4 · Settlement"]
         M{"User confirms?"}
-        N["WDK commit<br/>signs + broadcasts"]
+        N["Sign + broadcast on Tron Nile<br/>returns a tx hash"]
         O["Cancelled — nothing signed"]
         Q["Assessment + decision<br/>logged locally"]
     end
 
-    A --> C
-    B --> C
-    C -- no --> D --> E
-    C -- yes --> E
+    A --> E
+    B --> E
     E --> F --> G --> H
     H --> Pr
     H -- "None / Low" --> I
@@ -144,21 +158,59 @@ flowchart TD
 See [ARCHITECTURE.md](./ARCHITECTURE.md#send-flow) for the full sequence
 diagram (every port/adapter involved) and the risk-level state machine.
 
+## Verify it yourself
+
+Everything below is checkable in a browser in about two minutes.
+
+1. Open the [live demo](https://custos-one-sand.vercel.app) and go to **Escudo**.
+   The wallet address and balances are read live from a Tron Nile node. Nothing
+   is installed and no extension is required.
+2. Open **Casos de prueba**, load *Pago normal a billetera verificada*, and run
+   the analysis. It clears, the transfer is signed and broadcast, and you get a
+   hash. Open it on Tronscan: the transaction exists on chain.
+3. Load *Mentor de inversiones y falso retiro*. The verdict is high risk and the
+   app shows the exact phrase that triggered it with its confidence. The send
+   button now demands an explicit confirmation.
+4. Go to **Reportes**, report that address with a reason, then analyze it again
+   in **Escudo**. It is now critical and no transaction is prepared at all.
+5. Open **VisionPsy** and upload a screenshot of a chat. The text and any address
+   are extracted in a Web Worker on your machine.
+
+To sign in step 2 the demo wallet needs testnet TRX for gas and testnet USDT.
+Copy its address from **Escudo** and top it up at the
+[Nile faucet](https://nileex.io/join/getJoinPage).
+
 ## Tech stack
 
-| Piece | Technology | Role |
+The core is hexagonal: `packages/core` holds the domain and use cases and imports
+no SDK. Everything below is an adapter behind a port, which is why the same core
+runs unchanged in a browser, on Bare, or on Node.
+
+| Piece | Technology | Status in the deployed web build |
 |---|---|---|
-| On-device AI | **QVAC SDK** (`@qvac/sdk`) | Scam-pattern inference, fully local |
-| Cross-language detection | **TranslatePsy** (QVAC Psy) | On-device translation of pasted scam scripts before analysis |
-| Image-borne scam detection *(stretch)* | **VisionPsy** (QVAC Psy) | OCR of screenshots/QR codes |
-| Wallet | **WDK** | Self-custodial USDT wallet: builds, signs, and broadcasts the transfer once the user clears or overrides the warning |
-| P2P risk-list sync *(stretch)* | **Pears Stack (Hyperswarm)** | Peer-to-peer propagation of confirmed scam addresses, no central server |
-| App shell | TypeScript, Vite + React | Demo UI for the send flow |
+| Scam detection | Seed phrase dataset behind `ScamDetectionPort` | **Working.** 12 families, 195 phrases, Spanish and English, accent-insensitive. |
+| On-device LLM pass | **QVAC SDK** (`@qvac/sdk`) | Adapter written, not active in the browser: `@qvac/sdk` cannot load in a Vite bundle. Runs on Bare or Node. |
+| Cross-language detection | **TranslatePsy** (QVAC Psy) | Adapter written, same constraint. The web build compensates by carrying the phrase list in both languages. |
+| Screenshot OCR | **tesseract.js** behind `OcrPort` | **Working.** Runs in a Web Worker; the image never leaves the browser. |
+| Wallet / settlement | **tronweb** behind `WalletPort` | **Working.** Real USDT TRC-20 transfers on Tron Nile testnet, with fees simulated against the node. A **WDK** adapter (`adapters-wdk`) implements the same port for Node. |
+| Risk-address directory | `RiskListPort`, local cache | **Working, local only.** Reports carry the reason they were made. |
+| P2P sync | **Pears Stack (Hyperswarm)** | Adapter written, not active in the browser: gossip needs raw UDP/DHT, which browsers do not expose. Runs on Bare or Node. |
+| App shell | TypeScript, Vite + React | Deployed on Vercel. |
 
 No inference call in this app is ever routed to a cloud API. The only network
-calls in the codebase are non-inference: serving the static UI bundle and (if
-enabled) Hyperswarm P2P sync of the risk-address list, which is itself a
-decentralized peer swarm, not a centralized service.
+calls the deployed build makes are to a public Tron Nile node, to read balances
+and broadcast the transfers you approve.
+
+### Tests
+
+79 automated tests across the domain and the adapters, including regressions for
+the bugs that mattered: that Spanish scam text is actually detected, that
+matching survives missing accents, that a flagged address keeps its original
+base58 casing, and that the demo's poisoning address is a genuine lookalike.
+
+```bash
+pnpm test
+```
 
 ## Repository layout
 
@@ -230,8 +282,13 @@ live, checkable version. Deadline: **2026-09-11, 08:00 Panama time**.
 
 ## Status
 
-Early scaffold — architecture and ports are in place; SDK wiring and the demo
-UI are tracked in GitHub Issues.
+Deployed and working: [custos-one-sand.vercel.app](https://custos-one-sand.vercel.app).
+The send flow performs real USDT transfers on Tron Nile testnet, screenshot OCR
+runs on device, and scam detection works in Spanish and English. 79 tests pass.
+
+Not active in the browser build, by constraint rather than by omission: the QVAC
+on-device LLM pass and Hyperswarm P2P sync. Both are written against the same
+ports and run when the app is hosted on Bare or Node.
 
 ## License
 
